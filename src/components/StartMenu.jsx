@@ -72,8 +72,8 @@ function StartMenu({ onGameModeSelect, onGameCodeSet }) {
   return (
     <div className="start-menu">
       <h2 className="menu-title">
-        <span className="menu-title-line menu-title-super">Super</span>
-        <span className="menu-title-line menu-title-ttt">Tic-Tac-Toe</span>
+        <span className="menu-title-line menu-title-super">Ultimate</span>
+        <span className="menu-title-line menu-title-ttt">Tic Tac Toe</span>
       </h2>
       <p className="subtitle">Made by Huy Nguyen</p>
   <button onClick={handleLocalGame}>Local Play</button>

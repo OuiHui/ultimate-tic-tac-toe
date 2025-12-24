@@ -1,6 +1,6 @@
-# Super Tic-Tac-Toe React
+# Ultimate Tic Tac Toe React
 
-A React implementation of Super Tic-Tac-Toe (Firebase real-time multiplayer support in progress)
+A React implementation of Ultimate Tic Tac Toe (Firebase real-time multiplayer support in progress)
 
 ## Getting Started
 

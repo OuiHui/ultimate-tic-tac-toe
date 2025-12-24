@@ -106,13 +106,13 @@ function GameContainer({ gameMode, gameCode, onBackToMenu }) {
         ? 'tie-winner'
         : `${gameState.currentPlayer.toLowerCase()}-turn`
     }`}>
-      <h1 data-text="SUPER TIC-TAC-TOE" className={`game-title ${
+      <h1 data-text="ULTIMATE TIC TAC TOE" className={`game-title ${
         gameState.gameOver && gameState.gameWinner !== 'tie'
           ? `${gameState.gameWinner.toLowerCase()}-glow`
           : gameState.gameOver && gameState.gameWinner === 'tie'
           ? ''
           : `${gameState.currentPlayer.toLowerCase()}-glow`
-      }`}>SUPER TIC-TAC-TOE</h1>
+      }`}>ULTIMATE TIC TAC TOE</h1>
       
       <GameStatus 
         gameState={gameState} 
