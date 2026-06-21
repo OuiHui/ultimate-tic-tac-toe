@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useFirebase } from '../contexts/FirebaseContext'
+import { useSupabase } from '../contexts/SupabaseContext'
 
 function StartMenu({ onGameModeSelect, onGameCodeSet }) {
   const [showOnlineOptions, setShowOnlineOptions] = useState(false)
@@ -7,7 +7,7 @@ function StartMenu({ onGameModeSelect, onGameCodeSet }) {
   const [joinCode, setJoinCode] = useState('')
   const [joinError, setJoinError] = useState('')
   const [createdGameCode, setCreatedGameCode] = useState('')
-  const { database, ref, set, get } = useFirebase()
+  const { supabase, createRoom, joinRoom } = useSupabase()
 
   const handleLocalGame = () => {
     onGameModeSelect('local')
@@ -18,26 +18,13 @@ function StartMenu({ onGameModeSelect, onGameCodeSet }) {
   }
 
   const handleCreateGame = async () => {
-    if (!database) return
+    if (!supabase) return
     if (displayName.trim()) {
       localStorage.setItem('displayName', displayName.trim())
     }
     
-    const code = Math.random().toString(36).substr(2, 6).toUpperCase()
-    const gameRef = ref(database, 'games/' + code + '/state')
-    
     try {
-      await set(gameRef, {
-        boards: Array(9).fill(null).map(() => Array(9).fill('')),
-        currentPlayer: 'X',
-        activeBoard: null,
-        wonBoards: Array(9).fill(''),
-        gameWinner: '',
-        gameOver: false,
-        playerXTime: 500,
-        playerOTime: 500
-      })
-      
+      const code = await createRoom(supabase)
       setCreatedGameCode(code)
       onGameCodeSet(code)
       onGameModeSelect('online')
@@ -47,27 +34,23 @@ function StartMenu({ onGameModeSelect, onGameCodeSet }) {
   }
 
   const handleJoinGame = async () => {
-    if (!database || !joinCode.trim()) return
+    if (!supabase || !joinCode.trim()) return
     if (displayName.trim()) {
       localStorage.setItem('displayName', displayName.trim())
     }
     
     const code = joinCode.trim().toUpperCase()
-    const gameRef = ref(database, 'games/' + code + '/state')
     
     try {
-      const snapshot = await get(gameRef)
-      if (snapshot.exists()) {
-        onGameCodeSet(code)
-        onGameModeSelect('online')
-      } else {
-        setJoinError('Game not found!')
-      }
+      await joinRoom(supabase, code)
+      onGameCodeSet(code)
+      onGameModeSelect('online')
     } catch (error) {
       console.error('Error joining game:', error)
-      setJoinError('Error joining game')
+      setJoinError('Game not found!')
     }
   }
+
 
   return (
     <div className="start-menu">

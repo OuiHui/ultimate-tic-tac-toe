@@ -3,13 +3,19 @@ import SuperBoard from './SuperBoard'
 import GameStatus from './GameStatus'
 import Timer from './Timer'
 const RulesLazy = lazy(() => import('./Rules'))
-import { useFirebase } from '../contexts/FirebaseContext'
+import { useSupabase } from '../contexts/SupabaseContext'
 import { useSuperTicTacToe } from '../hooks/useSuperTicTacToe'
 
 function GameContainer({ gameMode, gameCode, onBackToMenu }) {
-  const { database, ref, set, get, onValue } = useFirebase()
+  const {
+    supabase,
+    joinRoom,
+    makeMove: makeMoveSupabase,
+    subscribeToGame,
+    unsubscribeFromGame
+  } = useSupabase()
   const [myPlayer, setMyPlayer] = useState(null)
-  const [firebaseUnsubscribe, setFirebaseUnsubscribe] = useState(null)
+  const [supabaseChannel, setSupabaseChannel] = useState(null)
   
   const {
     gameState,
@@ -19,84 +25,110 @@ function GameContainer({ gameMode, gameCode, onBackToMenu }) {
   } = useSuperTicTacToe(gameMode === 'local')
 
   useEffect(() => {
-    if (gameMode === 'online' && database && gameCode) {
+    if (gameMode === 'online' && supabase && gameCode) {
       setupMultiplayer()
     }
     
     return () => {
-      if (firebaseUnsubscribe) {
-        firebaseUnsubscribe()
+      if (supabaseChannel) {
+        unsubscribeFromGame(supabaseChannel)
       }
     }
-  }, [gameMode, database, gameCode])
+  }, [gameMode, supabase, gameCode])
 
   const setupMultiplayer = async () => {
     const displayName = localStorage.getItem('displayName') || 'Anonymous'
     
-    // Assign player role
-    const playersRef = ref(database, 'games/' + gameCode + '/players')
-    const playersSnapshot = await get(playersRef)
-    let players = playersSnapshot.exists() ? playersSnapshot.val() : {}
-    
-    let assignedPlayer
-    if (!players.X) {
-      assignedPlayer = 'X'
-      players.X = displayName
-    } else if (!players.O) {
-      assignedPlayer = 'O'
-      players.O = displayName
-    } else {
-      assignedPlayer = 'spectator'
-    }
-    
-    setMyPlayer(assignedPlayer)
-    localStorage.setItem('super-ttt-player-' + gameCode, assignedPlayer)
-    await set(playersRef, players)
-
-    // Listen for game state changes
-    const gameStateRef = ref(database, 'games/' + gameCode + '/state')
-    const unsubscribe = onValue(gameStateRef, (snapshot) => {
-      const state = snapshot.val()
-      if (state) {
-        setGameState(state)
+    try {
+      const room = await joinRoom(supabase, gameCode)
+      
+      let assignedPlayer
+      let updateData = {}
+      if (!room.player_x) {
+        assignedPlayer = 'X'
+        updateData = { player_x: displayName }
+      } else if (!room.player_o && room.player_x !== displayName) {
+        assignedPlayer = 'O'
+        updateData = { player_o: displayName }
+      } else if (room.player_x === displayName) {
+        assignedPlayer = 'X'
+      } else if (room.player_o === displayName) {
+        assignedPlayer = 'O'
+      } else {
+        assignedPlayer = 'spectator'
       }
-    })
-    
-    setFirebaseUnsubscribe(() => unsubscribe)
+      
+      setMyPlayer(assignedPlayer)
+      localStorage.setItem('super-ttt-player-' + gameCode, assignedPlayer)
+      
+      if (Object.keys(updateData).length > 0) {
+        await supabase
+          .from('games')
+          .update(updateData)
+          .eq('code', gameCode)
+      }
+
+      if (room.state) {
+        setGameState(room.state)
+      }
+
+      // Listen for game state changes
+      const channel = subscribeToGame(supabase, gameCode, (updatedGame) => {
+        if (updatedGame && updatedGame.state) {
+          setGameState(updatedGame.state)
+        }
+      })
+      
+      setSupabaseChannel(channel)
+    } catch (err) {
+      console.error('Error setting up multiplayer:', err)
+    }
   }
 
-  const handleMove = (boardIndex, cellIndex) => {
+  const handleMove = async (boardIndex, cellIndex) => {
     if (gameMode === 'online') {
       // Only allow if it's your turn
       if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
       if (gameState.wonBoards[boardIndex] || gameState.boards[boardIndex][cellIndex]) return
       if (gameState.activeBoard !== null && gameState.activeBoard !== boardIndex) return
 
-      // Make move and sync to Firebase
+      // Make move and sync to Supabase
       const newState = makeMove(boardIndex, cellIndex)
-      if (newState && database) {
-        set(ref(database, 'games/' + gameCode + '/state'), newState)
+      if (newState && supabase) {
+        try {
+          await makeMoveSupabase(supabase, gameCode, newState, myPlayer)
+        } catch (err) {
+          console.error('Error syncing move to Supabase:', err)
+        }
       }
     } else {
       makeMove(boardIndex, cellIndex)
     }
   }
 
-  const handleReset = () => {
-    if (gameMode === 'online' && database) {
+  const handleReset = async () => {
+    if (gameMode === 'online' && supabase) {
       const newState = resetGame()
-      set(ref(database, 'games/' + gameCode + '/state'), newState)
+      try {
+        await supabase
+          .from('games')
+          .update({ state: newState })
+          .eq('code', gameCode)
+      } catch (err) {
+        console.error('Error resetting game in Supabase:', err)
+      }
     } else {
       resetGame()
     }
   }
 
   const handleBackToMenu = () => {
-    if (firebaseUnsubscribe) {
-      firebaseUnsubscribe()
+    if (supabaseChannel) {
+      unsubscribeFromGame(supabaseChannel)
     }
     onBackToMenu()
   }
+
 
   return (
     <div className={`game-container ${
