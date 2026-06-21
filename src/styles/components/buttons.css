@@ -122,3 +122,66 @@
     0 6px 20px rgba(0, 200, 255, 0.8);
   background: rgba(0, 0, 0, 1);
 }
+
+/* ── Action button row ───────────────────────────────────────────────────── */
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
+  margin: 0.25rem 0;
+}
+
+/* ── Hint button (gold) ──────────────────────────────────────────────────── */
+
+.button.button-hint {
+  border-color: rgba(255, 215, 0, 0.8);
+  color: #ffd700;
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.4),
+    0 0 40px rgba(255, 215, 0, 0.2),
+    inset 0 0 20px rgba(255, 215, 0, 0.05),
+    0 8px 25px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+
+.button.button-hint:hover {
+  border-color: rgba(255, 215, 0, 1);
+  color: #ffec6e;
+  box-shadow:
+    0 0 30px rgba(255, 215, 0, 0.8),
+    0 0 60px rgba(255, 215, 0, 0.5),
+    0 12px 35px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
+}
+
+.button.button-hint:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── Undo button (purple) ────────────────────────────────────────────────── */
+
+.button.button-undo {
+  border-color: rgba(180, 100, 255, 0.8);
+  color: #c87dff;
+  box-shadow:
+    0 0 20px rgba(180, 100, 255, 0.4),
+    0 0 40px rgba(180, 100, 255, 0.2),
+    inset 0 0 20px rgba(180, 100, 255, 0.05),
+    0 8px 25px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 10px rgba(180, 100, 255, 0.6);
+}
+
+.button.button-undo:hover {
+  border-color: rgba(180, 100, 255, 1);
+  color: #dba8ff;
+  box-shadow:
+    0 0 30px rgba(180, 100, 255, 0.8),
+    0 0 60px rgba(180, 100, 255, 0.5),
+    0 12px 35px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 15px rgba(180, 100, 255, 0.9);
+}
+

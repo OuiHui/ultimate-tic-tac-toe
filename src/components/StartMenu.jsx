@@ -1,7 +1,36 @@
 import { useState } from 'react'
 import { useSupabase } from '../contexts/SupabaseContext'
 
-function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame }) {
+// Timer presets: label → seconds (0 = disabled)
+const TIMER_PRESETS = [
+  { label: 'Off',  value: 0    },
+  { label: '1m',   value: 60   },
+  { label: '3m',   value: 180  },
+  { label: '5m',   value: 300  },
+  { label: '10m',  value: 600  },
+]
+const DEFAULT_TIMER = 300 // 5 minutes
+
+function TimerPresets({ selected, onChange }) {
+  return (
+    <div className="ai-option-group">
+      <div className="ai-option-label">Timer (per player)</div>
+      <div className="ai-option-buttons timer-presets">
+        {TIMER_PRESETS.map(({ label, value }) => (
+          <button
+            key={label}
+            className={`ai-option-btn${selected === value ? ' selected-neutral' : ''}`}
+            onClick={() => onChange(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLocalGame }) {
   // ── Online options ────────────────────────────────────────────
   const [showOnlineOptions, setShowOnlineOptions] = useState(false)
   const [displayName, setDisplayName]   = useState('')
@@ -13,15 +42,27 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame }) {
   const [showAIOptions, setShowAIOptions] = useState(false)
   const [aiDifficulty, setAIDifficulty]  = useState('medium')
   const [aiColor, setAIColor]            = useState('X')
+  const [aiTimer, setAITimer]            = useState(DEFAULT_TIMER)
+
+  // ── Local options ─────────────────────────────────────────────
+  const [showLocalOptions, setShowLocalOptions] = useState(false)
+  const [localTimer, setLocalTimer]             = useState(DEFAULT_TIMER)
 
   const { supabase, createRoom, joinRoom } = useSupabase()
 
   // ── Local ─────────────────────────────────────────────────────
-  const handleLocalGame = () => onGameModeSelect('local')
+  const handleLocalGame = () => {
+    // If no timer customisation needed, start directly; otherwise show options
+    if (onStartLocalGame) {
+      onStartLocalGame(localTimer, localTimer)
+    } else {
+      onGameModeSelect('local')
+    }
+  }
 
   // ── Bot ───────────────────────────────────────────────────────
   const handleStartAI = () => {
-    onStartBotGame(aiDifficulty, aiColor)
+    onStartBotGame(aiDifficulty, aiColor, aiTimer, aiTimer)
   }
 
   // ── Online ────────────────────────────────────────────────────
@@ -71,12 +112,24 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame }) {
       <p className="subtitle">Made by Huy Nguyen</p>
 
       {/* ── Main buttons ── */}
-      {!showAIOptions && !showOnlineOptions && (
+      {!showAIOptions && !showOnlineOptions && !showLocalOptions && (
         <>
-          <button onClick={handleLocalGame}>Local Play</button>
+          <button onClick={() => setShowLocalOptions(true)}>Local Play</button>
           <button onClick={() => setShowAIOptions(true)}>Play AI</button>
           <button onClick={handleOnlineMultiplayer}>Online Multiplayer</button>
         </>
+      )}
+
+      {/* ── Local settings panel ── */}
+      {showLocalOptions && (
+        <div className="ai-options">
+          <div className="ai-options-title">Local Play Settings</div>
+
+          <TimerPresets selected={localTimer} onChange={setLocalTimer} />
+
+          <button onClick={handleLocalGame}>Start Game</button>
+          <button onClick={() => setShowLocalOptions(false)}>← Back</button>
+        </div>
       )}
 
       {/* ── AI settings panel ── */}
@@ -110,6 +163,8 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame }) {
               </button>
             </div>
           </div>
+
+          <TimerPresets selected={aiTimer} onChange={setAITimer} />
 
           <button onClick={handleStartAI}>Start Game</button>
           <button onClick={() => setShowAIOptions(false)}>← Back</button>

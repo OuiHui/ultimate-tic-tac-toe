@@ -356,3 +356,17 @@
   opacity: 0 !important;
 }
 
+/* ── Timer preset chips (5 options, slightly narrower) ── */
+
+.timer-presets {
+  gap: 4px !important;
+}
+
+.timer-presets .ai-option-btn {
+  padding: 6px 8px !important;
+  font-size: 0.68rem !important;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+
