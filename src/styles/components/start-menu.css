@@ -4,16 +4,14 @@
   background: rgba(5, 5, 15, 0.3);
   border-radius: 25px;
   box-shadow: 
-    0 0 60px rgba(0, 200, 255, 0.4),
-    0 0 120px rgba(0, 200, 255, 0.2),
-    0 0 180px rgba(255, 50, 80, 0.15),
-    inset 0 0 40px rgba(0, 0, 0, 0.5),
-    0 20px 60px rgba(0, 0, 0, 0.4);
+    0 0 25px rgba(0, 200, 255, 0.15),
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 10px 30px rgba(0, 0, 0, 0.4);
   padding: 3rem 2.5rem 2.5rem 2.5rem;
   max-width: 450px;
   margin: 40px auto 0 auto;
   text-align: center;
-  border: 2px solid rgba(0, 200, 255, 0.6);
+  border: 2px solid rgba(0, 200, 255, 0.3);
   backdrop-filter: blur(20px);
   position: relative;
   transition: all 0.6s ease;
@@ -22,14 +20,14 @@
 .start-menu::before {
   content: '';
   position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
   border-radius: 28px;
   z-index: -1;
-  opacity: 0.8;
-  filter: blur(8px);
+  opacity: 0.5;
+  filter: blur(4px);
 }
 
 .start-menu h2.menu-title {
@@ -52,9 +50,7 @@
   font-size: 2.4em;
   color: #ff3250;
   text-shadow:
-    0 0 12px rgba(255, 50, 80, 0.6),
-    0 0 24px rgba(255, 50, 80, 0.35),
-    0 0 48px rgba(255, 50, 80, 0.2);
+    0 0 8px rgba(255, 50, 80, 0.5);
 }
 
 .menu-title-ttt {
@@ -62,9 +58,7 @@
   color: #00c8ff;
   white-space: nowrap;
   text-shadow:
-    0 0 12px rgba(0, 200, 255, 0.6),
-    0 0 24px rgba(0, 200, 255, 0.35),
-    0 0 48px rgba(0, 200, 255, 0.2);
+    0 0 8px rgba(0, 200, 255, 0.5);
 }
 
 .start-menu .subtitle {
@@ -77,9 +71,8 @@
   text-transform: uppercase;
   opacity: 0.8;
   text-shadow: 
-    0 0 8px rgba(255, 255, 255, 0.3),
-    0 0 15px rgba(0, 200, 255, 0.4),
-    0 0 25px rgba(0, 200, 255, 0.2);
+    0 0 5px rgba(255, 255, 255, 0.2),
+    0 0 10px rgba(0, 200, 255, 0.25);
   animation: subtitleGlow 4s ease-in-out infinite alternate;
   transition: all 0.3s ease;
 }
@@ -87,11 +80,9 @@
 .start-menu .subtitle:hover {
   opacity: 1;
   text-shadow: 
-    0 0 10px rgba(255, 255, 255, 0.5),
-    0 0 20px rgba(0, 200, 255, 0.6),
-    0 0 30px rgba(0, 200, 255, 0.4),
-    0 0 40px rgba(255, 50, 80, 0.2);
-  transform: scale(1.05);
+    0 0 8px rgba(255, 255, 255, 0.4),
+    0 0 15px rgba(0, 200, 255, 0.35);
+  transform: scale(1.02);
 }
 
 .start-menu button {
@@ -104,20 +95,20 @@
   letter-spacing: 0.05em;
   background: rgba(0, 0, 0, 0.8);
   color: #00c8ff;
-  border: 2px solid rgba(0, 200, 255, 0.6);
+  border: 2px solid rgba(0, 200, 255, 0.4);
   border-radius: 30px;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 
-    0 0 20px rgba(0, 200, 255, 0.3),
-    0 8px 25px rgba(0, 0, 0, 0.6),
-    inset 0 0 15px rgba(0, 200, 255, 0.05);
+    0 0 8px rgba(0, 200, 255, 0.2),
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    inset 0 0 10px rgba(0, 200, 255, 0.05);
   display: block;
   width: 100%;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+  text-shadow: 0 0 5px rgba(0, 200, 255, 0.4);
 }
 
 .start-menu button::before {
@@ -128,38 +119,37 @@
   right: -3px;
   bottom: -3px;
   background: linear-gradient(45deg, 
-    rgba(0, 200, 255, 0.3), 
-    rgba(0, 200, 255, 0.1), 
-    rgba(0, 200, 255, 0.3));
+    rgba(0, 200, 255, 0.15), 
+    rgba(0, 200, 255, 0.05), 
+    rgba(0, 200, 255, 0.15));
   border-radius: 33px;
   z-index: -1;
   opacity: 0;
   transition: opacity 0.4s ease;
-  filter: blur(8px);
+  filter: blur(4px);
 }
 
 .start-menu button:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(255, 50, 80, 0.9);
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(255, 50, 80, 0.7);
   color: #ff3250;
   box-shadow: 
-    0 0 35px rgba(255, 50, 80, 0.7), 
-    0 0 70px rgba(255, 50, 80, 0.4),
-    0 0 105px rgba(255, 50, 80, 0.2),
-    0 15px 40px rgba(0, 0, 0, 0.8);
-  text-shadow: 0 0 15px rgba(255, 50, 80, 0.7);
+    0 0 15px rgba(255, 50, 80, 0.4), 
+    inset 0 0 15px rgba(255, 50, 80, 0.08),
+    0 8px 25px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 8px rgba(255, 50, 80, 0.6);
 }
 
 .start-menu button:hover::before {
   opacity: 1;
   background: linear-gradient(45deg, 
-    rgba(255, 50, 80, 0.4), 
     rgba(255, 50, 80, 0.2), 
-    rgba(255, 50, 80, 0.4));
+    rgba(255, 50, 80, 0.1), 
+    rgba(255, 50, 80, 0.2));
 }
 
 .start-menu button:active {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(-1px) scale(0.99);
 }
 
 .online-options {
@@ -167,12 +157,12 @@
   border-radius: 15px;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   margin-top: 1.5em;
-  border: 2px solid rgba(0, 200, 255, 0.4);
+  border: 2px solid rgba(0, 200, 255, 0.25);
   backdrop-filter: blur(10px);
   box-shadow: 
-    0 0 30px rgba(0, 200, 255, 0.3),
-    inset 0 0 30px rgba(0, 0, 0, 0.5),
-    0 10px 30px rgba(0, 0, 0, 0.3);
+    0 0 15px rgba(0, 200, 255, 0.15),
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 6px 20px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
 }
 
@@ -180,7 +170,7 @@
   width: 92%;
   padding: 12px 15px;
   border-radius: 15px;
-  border: 2px solid rgba(0, 200, 255, 0.4);
+  border: 2px solid rgba(0, 200, 255, 0.25);
   margin-bottom: 1em;
   font-size: 1em;
   font-family: 'Orbitron', monospace;
@@ -188,28 +178,28 @@
   color: #00c8ff;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
-  text-shadow: 0 0 5px rgba(0, 200, 255, 0.3);
+  text-shadow: none;
 }
 
 .display-name-input:focus, .join-code-input:focus {
   outline: none;
-  border-color: rgba(255, 50, 80, 0.6);
+  border-color: rgba(255, 50, 80, 0.4);
   box-shadow: 
-    0 0 20px rgba(255, 50, 80, 0.4),
-    inset 0 0 15px rgba(255, 50, 80, 0.1);
+    0 0 10px rgba(255, 50, 80, 0.25),
+    inset 0 0 10px rgba(255, 50, 80, 0.05);
   color: #ff3250;
-  text-shadow: 0 0 10px rgba(255, 50, 80, 0.5);
+  text-shadow: 0 0 4px rgba(255, 50, 80, 0.3);
 }
 
 .display-name-input::placeholder, .join-code-input::placeholder {
-  color: rgba(0, 200, 255, 0.6);
+  color: rgba(0, 200, 255, 0.5);
   font-style: italic;
 }
 
 .game-code-box {
-  background: rgba(0, 200, 255, 0.1);
+  background: rgba(0, 200, 255, 0.05);
   color: #00c8ff;
-  border: 3px dashed rgba(0, 200, 255, 0.6);
+  border: 2px dashed rgba(0, 200, 255, 0.4);
   border-radius: 15px;
   padding: 15px 0;
   font-size: 1.4em;
@@ -219,23 +209,23 @@
   font-weight: bold;
   font-family: 'Orbitron', monospace;
   box-shadow: 
-    0 0 30px rgba(0, 200, 255, 0.3),
-    inset 0 0 20px rgba(0, 200, 255, 0.1);
+    0 0 12px rgba(0, 200, 255, 0.15),
+    inset 0 0 10px rgba(0, 200, 255, 0.05);
   user-select: all;
-  text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+  text-shadow: 0 0 5px rgba(0, 200, 255, 0.4);
   animation: codeGlow 3s ease-in-out infinite alternate;
 }
 
 @keyframes codeGlow {
   0% { 
     box-shadow: 
-      0 0 30px rgba(0, 200, 255, 0.3),
-      inset 0 0 20px rgba(0, 200, 255, 0.1);
+      0 0 12px rgba(0, 200, 255, 0.15),
+      inset 0 0 10px rgba(0, 200, 255, 0.05);
   }
   100% { 
     box-shadow: 
-      0 0 40px rgba(0, 200, 255, 0.5),
-      inset 0 0 30px rgba(0, 200, 255, 0.2);
+      0 0 20px rgba(0, 200, 255, 0.3),
+      inset 0 0 15px rgba(0, 200, 255, 0.1);
   }
 }
 
@@ -243,20 +233,18 @@
   color: #ff3250;
   font-size: 0.9em;
   margin-top: 0.5em;
-  text-shadow: 0 0 5px rgba(255, 50, 80, 0.5);
+  text-shadow: 0 0 3px rgba(255, 50, 80, 0.3);
   font-family: 'Orbitron', monospace;
   font-weight: 600;
 }
 
 .start-menu:hover {
-  border-color: rgba(255, 50, 80, 0.8);
+  border-color: rgba(255, 50, 80, 0.5);
   box-shadow: 
-    0 0 80px rgba(255, 50, 80, 0.5),
-    0 0 160px rgba(255, 50, 80, 0.3),
-    0 0 240px rgba(0, 200, 255, 0.2),
-    inset 0 0 40px rgba(0, 0, 0, 0.5),
-    0 25px 70px rgba(0, 0, 0, 0.5);
-  transform: translateY(-2px);
+    0 0 30px rgba(255, 50, 80, 0.25),
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 12px 35px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
 }
 
 .start-menu:hover::before {
@@ -267,16 +255,14 @@
   0% { 
     opacity: 0.7;
     text-shadow: 
-      0 0 8px rgba(255, 255, 255, 0.3),
-      0 0 15px rgba(0, 200, 255, 0.3),
-      0 0 25px rgba(0, 200, 255, 0.1);
+      0 0 4px rgba(255, 255, 255, 0.2),
+      0 0 8px rgba(0, 200, 255, 0.2);
   }
   100% { 
     opacity: 0.9;
     text-shadow: 
-      0 0 10px rgba(255, 255, 255, 0.4),
-      0 0 20px rgba(0, 200, 255, 0.5),
-      0 0 30px rgba(0, 200, 255, 0.3);
+      0 0 6px rgba(255, 255, 255, 0.3),
+      0 0 12px rgba(0, 200, 255, 0.3);
   }
 }
 

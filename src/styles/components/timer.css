@@ -41,45 +41,45 @@
   font-size: 1.6rem;
   font-weight: 900;
   color: #fff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
 }
 
 .timer.x-player {
-  border-color: rgba(255, 50, 80, 0.6);
+  border-color: rgba(255, 50, 80, 0.25);
   background: rgba(25, 5, 10, 0.9);
   box-shadow: 
-    0 0 30px rgba(255, 50, 80, 0.4),
-    0 5px 20px rgba(0, 0, 0, 0.6),
-    inset 0 0 25px rgba(255, 50, 80, 0.1);
+    0 0 6px rgba(255, 50, 80, 0.1),
+    0 3px 10px rgba(0, 0, 0, 0.6),
+    inset 0 0 10px rgba(255, 50, 80, 0.04);
 }
 
 .timer.x-player .timer-label {
   color: #ff3250;
-  text-shadow: 0 0 8px rgba(255, 50, 80, 0.6);
+  text-shadow: none;
 }
 
 .timer.x-player .timer-value {
   color: #ff3250;
-  text-shadow: 0 0 15px rgba(255, 50, 80, 0.8);
+  text-shadow: none;
 }
 
 .timer.o-player {
-  border-color: rgba(0, 200, 255, 0.6);
+  border-color: rgba(0, 200, 255, 0.4);
   background: rgba(5, 15, 25, 0.9);
   box-shadow: 
-    0 0 30px rgba(0, 200, 255, 0.4),
-    0 5px 20px rgba(0, 0, 0, 0.6),
-    inset 0 0 25px rgba(0, 200, 255, 0.1);
+    0 0 12px rgba(0, 200, 255, 0.2),
+    0 3px 10px rgba(0, 0, 0, 0.6),
+    inset 0 0 15px rgba(0, 200, 255, 0.08);
 }
 
 .timer.o-player .timer-label {
   color: #00c8ff;
-  text-shadow: 0 0 8px rgba(0, 200, 255, 0.6);
+  text-shadow: 0 0 4px rgba(0, 200, 255, 0.4);
 }
 
 .timer.o-player .timer-value {
   color: #00c8ff;
-  text-shadow: 0 0 15px rgba(0, 200, 255, 0.8);
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.5);
 }
 
 .timer.warning {
@@ -92,7 +92,7 @@
 
 @keyframes timerWarning {
   0% { opacity: 1; }
-  100% { opacity: 0.7; }
+  100% { opacity: 0.75; }
 }
 
 @keyframes timerCritical {
@@ -101,72 +101,70 @@
     transform: scale(1);
   }
   100% { 
-    opacity: 0.8;
-    transform: scale(1.05);
+    opacity: 0.85;
+    transform: scale(1.02);
   }
 }
 
 .timer.active {
   animation: activePulse 1s ease-in-out infinite;
   border-width: 3px;
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .timer.active.player-x {
-  border-color: rgba(255, 50, 80, 0.9);
+  border-color: rgba(255, 50, 80, 0.4);
   background: rgba(40, 5, 10, 0.95);
   box-shadow: 
-    0 0 50px rgba(255, 50, 80, 0.6),
-    0 0 100px rgba(255, 50, 80, 0.3),
-    0 5px 25px rgba(0, 0, 0, 0.7),
-    inset 0 0 30px rgba(255, 50, 80, 0.15);
+    0 0 10px rgba(255, 50, 80, 0.2),
+    0 4px 15px rgba(0, 0, 0, 0.7),
+    inset 0 0 15px rgba(255, 50, 80, 0.06);
 }
 
 .timer.active.player-x .timer-label {
   color: #ff6080;
-  text-shadow: 0 0 12px rgba(255, 50, 80, 0.9);
-  animation: textGlow 1s ease-in-out infinite alternate;
+  text-shadow: 0 0 3px rgba(255, 50, 80, 0.3);
+  animation: textGlowRed 1s ease-in-out infinite alternate;
 }
 
 .timer.active.player-x .timer-value {
   color: #ff4060;
-  text-shadow: 0 0 20px rgba(255, 50, 80, 1);
-  animation: valueGlow 1s ease-in-out infinite alternate;
+  text-shadow: 0 0 5px rgba(255, 50, 80, 0.4);
+  animation: valueGlowRed 1s ease-in-out infinite alternate;
 }
 
 .timer.active.player-o {
-  border-color: rgba(0, 200, 255, 0.9);
+  border-color: rgba(0, 200, 255, 0.7);
   background: rgba(5, 20, 35, 0.95);
   box-shadow: 
-    0 0 50px rgba(0, 200, 255, 0.6),
-    0 0 100px rgba(0, 200, 255, 0.3),
-    0 5px 25px rgba(0, 0, 0, 0.7),
-    inset 0 0 30px rgba(0, 200, 255, 0.15);
+    0 0 20px rgba(0, 200, 255, 0.35),
+    0 4px 15px rgba(0, 0, 0, 0.7),
+    inset 0 0 20px rgba(0, 200, 255, 0.1);
 }
 
 .timer.active.player-o .timer-label {
   color: #40d8ff;
-  text-shadow: 0 0 12px rgba(0, 200, 255, 0.9);
+  text-shadow: 0 0 6px rgba(0, 200, 255, 0.6);
   animation: textGlow 1s ease-in-out infinite alternate;
 }
 
 .timer.active.player-o .timer-value {
   color: #20d0ff;
-  text-shadow: 0 0 20px rgba(0, 200, 255, 1);
+  text-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
   animation: valueGlow 1s ease-in-out infinite alternate;
 }
 
 @keyframes activePulse {
   0% { 
-    transform: scale(1.05);
+    transform: scale(1.02);
     filter: brightness(1);
   }
   50% {
-    transform: scale(1.06);
-    filter: brightness(1.05);
+    transform: scale(1.03);
+    filter: brightness(1.03);
   }
   100% { 
-    transform: scale(1.05);
+    transform: scale(1.02);
     filter: brightness(1);
   }
 }
@@ -174,22 +172,44 @@
 @keyframes textGlow {
   0% { 
     opacity: 0.95;
-    text-shadow: 0 0 6px currentColor;
+    text-shadow: 0 0 4px currentColor;
   }
   100% { 
     opacity: 1;
-    text-shadow: 0 0 8px currentColor, 0 0 12px currentColor;
+    text-shadow: 0 0 6px currentColor, 0 0 8px currentColor;
   }
 }
 
 @keyframes valueGlow {
   0% { 
     transform: scale(1);
-    text-shadow: 0 0 15px currentColor;
+    text-shadow: 0 0 8px currentColor;
   }
   100% { 
-    transform: scale(1.01);
-    text-shadow: 0 0 12px currentColor, 0 0 18px currentColor;
+    transform: scale(1.005);
+    text-shadow: 0 0 6px currentColor, 0 0 10px currentColor;
+  }
+}
+
+@keyframes textGlowRed {
+  0% { 
+    opacity: 0.95;
+    text-shadow: 0 0 2px rgba(255, 50, 80, 0.3);
+  }
+  100% { 
+    opacity: 1;
+    text-shadow: 0 0 4px rgba(255, 50, 80, 0.5);
+  }
+}
+
+@keyframes valueGlowRed {
+  0% { 
+    transform: scale(1);
+    text-shadow: 0 0 4px rgba(255, 50, 80, 0.4);
+  }
+  100% { 
+    transform: scale(1.005);
+    text-shadow: 0 0 6px rgba(255, 50, 80, 0.6);
   }
 }
 

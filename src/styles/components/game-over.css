@@ -9,10 +9,9 @@
   padding: 3rem 2.5rem;
   border-radius: 20px;
   box-shadow: 
-    0 0 100px rgba(0, 0, 0, 0.9),
-    0 0 200px rgba(255, 50, 80, 0.5),
-    0 0 300px rgba(255, 50, 80, 0.3),
-    inset 0 0 50px rgba(255, 50, 80, 0.1);
+    0 0 30px rgba(0, 0, 0, 0.9),
+    0 0 60px rgba(255, 50, 80, 0.25),
+    inset 0 0 20px rgba(255, 50, 80, 0.05);
   font-size: 3rem;
   font-weight: bold;
   font-family: 'Orbitron', monospace;
@@ -20,7 +19,7 @@
   letter-spacing: 0.2em;
   z-index: 1001;
   color: #fff;
-  border: 3px solid rgba(255, 50, 80, 0.6);
+  border: 2px solid rgba(255, 50, 80, 0.4);
   backdrop-filter: blur(20px);
   animation: winModalEntrance 1s cubic-bezier(0.4, 0, 0.2, 1) forwards,
              winModalGlow 2s ease-in-out 1s infinite alternate;
@@ -29,41 +28,34 @@
 .game-over.x {
   color: #ff3250;
   text-shadow: 
-    0 0 20px rgba(255, 50, 80, 1),
-    0 0 40px rgba(255, 50, 80, 0.8),
-    0 0 60px rgba(255, 50, 80, 0.6);
-  border-color: rgba(255, 50, 80, 0.8);
+    0 0 8px rgba(255, 50, 80, 0.6);
+  border-color: rgba(255, 50, 80, 0.5);
   box-shadow: 
-    0 0 100px rgba(0, 0, 0, 0.9),
-    0 0 200px rgba(255, 50, 80, 0.7),
-    0 0 300px rgba(255, 50, 80, 0.5),
-    inset 0 0 50px rgba(255, 50, 80, 0.2);
+    0 0 30px rgba(0, 0, 0, 0.9),
+    0 0 60px rgba(255, 50, 80, 0.35),
+    inset 0 0 20px rgba(255, 50, 80, 0.1);
 }
 
 .game-over.o {
   color: #00c8ff;
   text-shadow: 
-    0 0 20px rgba(0, 200, 255, 1),
-    0 0 40px rgba(0, 200, 255, 0.8),
-    0 0 60px rgba(0, 200, 255, 0.6);
-  border-color: rgba(0, 200, 255, 0.8);
+    0 0 8px rgba(0, 200, 255, 0.6);
+  border-color: rgba(0, 200, 255, 0.5);
   box-shadow: 
-    0 0 100px rgba(0, 0, 0, 0.9),
-    0 0 200px rgba(0, 200, 255, 0.7),
-    0 0 300px rgba(0, 200, 255, 0.5),
-    inset 0 0 50px rgba(0, 200, 255, 0.2);
+    0 0 30px rgba(0, 0, 0, 0.9),
+    0 0 60px rgba(0, 200, 255, 0.35),
+    inset 0 0 20px rgba(0, 200, 255, 0.1);
 }
 
 .game-over.tie {
   color: #c9c9c9;
   text-shadow: 
-    0 0 20px rgba(200, 200, 200, 0.8),
-    0 0 40px rgba(200, 200, 200, 0.6);
-  border-color: rgba(150, 150, 150, 0.6);
+    0 0 8px rgba(200, 200, 200, 0.4);
+  border-color: rgba(150, 150, 150, 0.4);
   box-shadow: 
-    0 0 100px rgba(0, 0, 0, 0.9),
-    0 0 200px rgba(150, 150, 150, 0.5),
-    inset 0 0 50px rgba(150, 150, 150, 0.1);
+    0 0 30px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(150, 150, 150, 0.25),
+    inset 0 0 20px rgba(150, 150, 150, 0.05);
 }
 
 .board-winner {
@@ -87,9 +79,8 @@
 .board-winner.x {
   color: #ff3250;
   text-shadow: 
-    0 0 20px rgba(255, 50, 80, 1),
-    0 0 40px rgba(255, 50, 80, 0.6);
-  background: rgba(255, 50, 80, 0.1);
+    0 0 10px rgba(255, 50, 80, 0.6);
+  background: rgba(255, 50, 80, 0.08);
   animation: winnerAppear 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both,
              winnerGlowRed 2s ease-in-out 0.8s infinite alternate;
 }
@@ -97,17 +88,20 @@
 .board-winner.o {
   color: #00c8ff;
   text-shadow: 
-    0 0 20px rgba(0, 200, 255, 1),
-    0 0 40px rgba(0, 200, 255, 0.6);
-  background: rgba(0, 200, 255, 0.1);
+    0 0 10px rgba(0, 200, 255, 0.6);
+  background: rgba(0, 200, 255, 0.08);
   animation: winnerAppear 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both,
              winnerGlowBlue 2s ease-in-out 0.8s infinite alternate;
 }
 
 .board-winner.tie {
   color: #888;
-  text-shadow: 0 0 15px rgba(150, 150, 150, 0.6);
-  background: rgba(150, 150, 150, 0.1);
+  text-shadow: 0 0 8px rgba(150, 150, 150, 0.4);
+  background: rgba(150, 150, 150, 0.08);
+}
+
+.board-winner.winner-appear-animation-done {
+  /* classes used for completion */
 }
 
 @keyframes winnerAppear {
@@ -130,23 +124,23 @@
 
 @keyframes winnerGlowRed {
   0%, 100% { 
-    text-shadow: 0 0 20px rgba(255, 50, 80, 0.8);
+    text-shadow: 0 0 10px rgba(255, 50, 80, 0.5);
   }
   50% { 
     text-shadow: 
-      0 0 30px rgba(255, 50, 80, 1),
-      0 0 60px rgba(255, 50, 80, 0.6);
+      0 0 15px rgba(255, 50, 80, 0.7),
+      0 0 25px rgba(255, 50, 80, 0.4);
   }
 }
 
 @keyframes winnerGlowBlue {
   0%, 100% { 
-    text-shadow: 0 0 20px rgba(0, 200, 255, 0.8);
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
   }
   50% { 
     text-shadow: 
-      0 0 30px rgba(0, 200, 255, 1),
-      0 0 60px rgba(0, 200, 255, 0.6);
+      0 0 15px rgba(0, 200, 255, 0.7),
+      0 0 25px rgba(0, 200, 255, 0.4);
   }
 }
 

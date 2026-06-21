@@ -18,9 +18,7 @@
   color: #ffffff;
   margin-bottom: 1.5rem;
   text-shadow: 
-    0 0 10px rgba(0, 200, 255, 0.8),
-    0 0 20px rgba(0, 200, 255, 0.4),
-    0 0 30px rgba(0, 200, 255, 0.2);
+    0 0 8px rgba(0, 200, 255, 0.5);
   font-family: 'Orbitron', monospace;
   font-weight: 700;
   text-transform: uppercase;
@@ -44,17 +42,16 @@
   font-family: 'Orbitron', monospace;
   font-weight: 400;
   letter-spacing: 0.05em;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.15);
   transition: all 0.3s ease;
 }
 
 .rules li:hover {
   color: #ffffff;
   text-shadow: 
-    0 0 8px rgba(255, 255, 255, 0.6),
-    0 0 15px rgba(0, 200, 255, 0.5),
-    0 0 25px rgba(0, 200, 255, 0.3);
-  transform: translateX(5px);
+    0 0 5px rgba(255, 255, 255, 0.4),
+    0 0 10px rgba(0, 200, 255, 0.3);
+  transform: translateX(4px);
 }
 
 .rules li:before {
@@ -64,8 +61,7 @@
   left: 0;
   font-size: 1rem;
   text-shadow: 
-    0 0 8px rgba(0, 200, 255, 0.8),
-    0 0 15px rgba(0, 200, 255, 0.4);
+    0 0 4px rgba(0, 200, 255, 0.5);
   animation: arrowPulse 2s ease-in-out infinite alternate;
   transition: all 0.3s ease;
 }
@@ -73,138 +69,121 @@
 .rules li:hover:before {
   color: #40d8ff;
   text-shadow: 
-    0 0 12px rgba(64, 216, 255, 1),
-    0 0 20px rgba(64, 216, 255, 0.6),
-    0 0 30px rgba(64, 216, 255, 0.3);
-  transform: scale(1.2);
+    0 0 6px rgba(64, 216, 255, 0.6);
+  transform: scale(1.1);
 }
 
 /* Enhanced interactivity - Text focused */
 .rules:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.6),
-    inset 0 0 25px rgba(0, 0, 0, 0.4);
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Player-specific theming with vibrant neon effects */
 .rules.x-theme {
-  border-color: rgba(255, 50, 80, 0.6);
+  border-color: rgba(255, 50, 80, 0.4);
   background: rgba(25, 5, 10, 0.9);
   box-shadow: 
-    0 0 30px rgba(255, 50, 80, 0.4),
-    0 5px 20px rgba(0, 0, 0, 0.6),
-    inset 0 0 25px rgba(255, 50, 80, 0.1);
+    0 0 15px rgba(255, 50, 80, 0.2),
+    0 3px 12px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(255, 50, 80, 0.08);
 }
 
 .rules.x-theme h3 {
   color: #ffffff;
   text-shadow: 
-    0 0 10px rgba(255, 50, 80, 0.9),
-    0 0 20px rgba(255, 50, 80, 0.6),
-    0 0 30px rgba(255, 50, 80, 0.3);
+    0 0 8px rgba(255, 50, 80, 0.6);
 }
 
 .rules.x-theme li:before {
   color: #ff3250;
   text-shadow: 
-    0 0 8px rgba(255, 50, 80, 0.8),
-    0 0 15px rgba(255, 50, 80, 0.4);
+    0 0 4px rgba(255, 50, 80, 0.5);
 }
 
 .rules.x-theme li:hover {
   text-shadow: 
-    0 0 8px rgba(255, 255, 255, 0.6),
-    0 0 15px rgba(255, 50, 80, 0.5),
-    0 0 25px rgba(255, 50, 80, 0.3);
+    0 0 5px rgba(255, 255, 255, 0.4),
+    0 0 10px rgba(255, 50, 80, 0.3);
 }
 
 .rules.x-theme li:hover:before {
   color: #ff6080;
   text-shadow: 
-    0 0 12px rgba(255, 96, 128, 1),
-    0 0 20px rgba(255, 96, 128, 0.6),
-    0 0 30px rgba(255, 96, 128, 0.3);
+    0 0 6px rgba(255, 96, 128, 0.6);
 }
 
 .rules.o-theme {
-  border-color: rgba(0, 200, 255, 0.6);
+  border-color: rgba(0, 200, 255, 0.4);
   background: rgba(5, 15, 25, 0.9);
   box-shadow: 
-    0 0 30px rgba(0, 200, 255, 0.4),
-    0 5px 20px rgba(0, 0, 0, 0.6),
-    inset 0 0 25px rgba(0, 200, 255, 0.1);
+    0 0 15px rgba(0, 200, 255, 0.2),
+    0 3px 12px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(0, 200, 255, 0.08);
 }
 
 .rules.o-theme h3 {
   color: #ffffff;
   text-shadow: 
-    0 0 10px rgba(0, 200, 255, 0.9),
-    0 0 20px rgba(0, 200, 255, 0.6),
-    0 0 30px rgba(0, 200, 255, 0.3);
+    0 0 8px rgba(0, 200, 255, 0.6);
 }
 
 .rules.o-theme li:before {
   color: #00c8ff;
   text-shadow: 
-    0 0 8px rgba(0, 200, 255, 0.8),
-    0 0 15px rgba(0, 200, 255, 0.4);
+    0 0 4px rgba(0, 200, 255, 0.5);
 }
 
 .rules.o-theme li:hover {
   text-shadow: 
-    0 0 8px rgba(255, 255, 255, 0.6),
-    0 0 15px rgba(0, 200, 255, 0.5),
-    0 0 25px rgba(0, 200, 255, 0.3);
+    0 0 5px rgba(255, 255, 255, 0.4),
+    0 0 10px rgba(0, 200, 255, 0.3);
 }
 
 .rules.o-theme li:hover:before {
   color: #40d8ff;
   text-shadow: 
-    0 0 12px rgba(64, 216, 255, 1),
-    0 0 20px rgba(64, 216, 255, 0.6),
-    0 0 30px rgba(64, 216, 255, 0.3);
+    0 0 6px rgba(64, 216, 255, 0.6);
 }
 
 /* Neutral theme for tie games */
 .rules.neutral-theme {
-  border-color: rgba(150, 150, 150, 0.4);
+  border-color: rgba(150, 150, 150, 0.3);
   box-shadow: 
-    0 5px 20px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(150, 150, 150, 0.3),
+    0 3px 12px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(150, 150, 150, 0.15),
     inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .rules.neutral-theme h3 {
   color: #c9c9c9;
   text-shadow: 
-    0 0 10px rgba(200, 200, 200, 0.6),
-    0 0 20px rgba(200, 200, 200, 0.3);
+    0 0 6px rgba(200, 200, 200, 0.4);
 }
 
 .rules.neutral-theme li:before {
   color: #999;
-  text-shadow: 0 0 8px rgba(150, 150, 150, 0.6);
+  text-shadow: 0 0 4px rgba(150, 150, 150, 0.4);
 }
 
 .rules.neutral-theme li:hover {
   color: #f0f0f0;
-  text-shadow: 0 0 8px rgba(200, 200, 200, 0.4);
+  text-shadow: 0 0 5px rgba(200, 200, 200, 0.3);
 }
 
 .rules.neutral-theme li:hover:before {
   color: #bbb;
   text-shadow: 
-    0 0 10px rgba(200, 200, 200, 0.8),
-    0 0 15px rgba(200, 200, 200, 0.4);
+    0 0 6px rgba(200, 200, 200, 0.5);
 }
 
 /* Glow classes for titles */
 .rules-title.neutral-glow {
   color: #c9c9c9;
   text-shadow: 
-    0 0 10px rgba(200, 200, 200, 0.6),
-    0 0 20px rgba(200, 200, 200, 0.3);
+    0 0 6px rgba(200, 200, 200, 0.4);
 }
 
 /* Special emphasis for key rules */
@@ -212,15 +191,14 @@
 .rules li:nth-child(4) {
   font-weight: 600;
   color: #f0f0f0;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
 }
 
 .rules li:nth-child(1):hover,
 .rules li:nth-child(4):hover {
   text-shadow: 
-    0 0 10px rgba(255, 255, 255, 0.6),
-    0 0 20px rgba(0, 200, 255, 0.4),
-    0 0 30px rgba(0, 200, 255, 0.2);
+    0 0 6px rgba(255, 255, 255, 0.4),
+    0 0 10px rgba(0, 200, 255, 0.3);
 }
 
 @keyframes textShimmer {

@@ -42,12 +42,12 @@
 
 .eval-bar-x-label {
   color: #ff3250;
-  text-shadow: 0 0 8px rgba(255, 50, 80, 0.8);
+  text-shadow: 0 0 4px rgba(255, 50, 80, 0.5);
 }
 
 .eval-bar-o-label {
   color: #00c8ff;
-  text-shadow: 0 0 8px rgba(0, 200, 255, 0.8);
+  text-shadow: 0 0 4px rgba(0, 200, 255, 0.5);
 }
 
 /* ── "you" indicator ── */
@@ -71,8 +71,8 @@
   flex-direction: column;
   position: relative;
   box-shadow:
-    0 0 18px rgba(0, 0, 0, 0.7),
-    inset 0 0 12px rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(0, 0, 0, 0.7),
+    inset 0 0 8px rgba(0, 0, 0, 0.5),
     0 0 1px rgba(255, 255, 255, 0.04);
   min-height: 180px;
 }
@@ -87,7 +87,7 @@
   );
   transition: height 0.55s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(255, 50, 80, 0.5);
+  box-shadow: 0 2px 5px rgba(255, 50, 80, 0.25);
 }
 
 /* O segment — fills remaining space */
@@ -99,7 +99,7 @@
     rgba(0, 200, 255, 0.95),
     rgba(0, 160, 210, 0.65)
   );
-  box-shadow: 0 -4px 10px rgba(0, 200, 255, 0.5);
+  box-shadow: 0 -2px 5px rgba(0, 200, 255, 0.25);
 }
 
 /* Sliding divider line */
@@ -110,8 +110,8 @@
   height: 3px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow:
-    0 0 6px rgba(255, 255, 255, 0.9),
-    0 0 14px rgba(255, 255, 255, 0.4);
+    0 0 3px rgba(255, 255, 255, 0.9),
+    0 0 8px rgba(255, 255, 255, 0.3);
   transform: translateY(-50%);
   transition: top 0.55s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 2px;
@@ -233,26 +233,26 @@
 }
 
 .ai-option-btn.selected-x {
-  border-color: rgba(255, 50, 80, 0.8);
-  background: rgba(255, 50, 80, 0.15);
+  border-color: rgba(255, 50, 80, 0.6);
+  background: rgba(255, 50, 80, 0.1);
   color: #ff3250;
-  box-shadow: 0 0 12px rgba(255, 50, 80, 0.4);
-  text-shadow: 0 0 8px rgba(255, 50, 80, 0.6);
+  box-shadow: 0 0 6px rgba(255, 50, 80, 0.25);
+  text-shadow: 0 0 4px rgba(255, 50, 80, 0.4);
 }
 
 .ai-option-btn.selected-o {
-  border-color: rgba(0, 200, 255, 0.8);
-  background: rgba(0, 200, 255, 0.15);
+  border-color: rgba(0, 200, 255, 0.6);
+  background: rgba(0, 200, 255, 0.1);
   color: #00c8ff;
-  box-shadow: 0 0 12px rgba(0, 200, 255, 0.4);
-  text-shadow: 0 0 8px rgba(0, 200, 255, 0.6);
+  box-shadow: 0 0 6px rgba(0, 200, 255, 0.25);
+  text-shadow: 0 0 4px rgba(0, 200, 255, 0.4);
 }
 
 .ai-option-btn.selected-neutral {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
 }
 
 /* ── Reduced-motion & perf-low overrides ── */

@@ -9,18 +9,18 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   text-shadow: 
-    0 0 12px rgba(255, 255, 255, 0.3),
-    0 0 20px rgba(0, 200, 255, 0.3);
+    0 0 6px rgba(255, 255, 255, 0.25),
+    0 0 10px rgba(0, 200, 255, 0.25);
   position: relative;
   transition: all 0.3s ease;
 }
 
 h1.x-glow {
   color: #ff3250;
-  text-shadow: 0 0 15px rgba(255, 50, 80, 0.6);
+  text-shadow: 0 0 8px rgba(255, 50, 80, 0.45);
 }
 
 h1.o-glow {
   color: #00c8ff;
-  text-shadow: 0 0 15px rgba(0, 200, 255, 0.6);
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.45);
 }

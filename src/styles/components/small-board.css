@@ -14,40 +14,37 @@
 }
 
 .small-board.active {
-  background: rgba(0, 200, 255, 0.08);
+  background: rgba(0, 200, 255, 0.04);
   box-shadow: 
-    0 0 0 3px #00c8ff,
-    0 0 30px rgba(0, 200, 255, 0.7),
-    0 0 60px rgba(0, 200, 255, 0.4),
-    inset 0 0 30px rgba(0, 200, 255, 0.15),
-    0 8px 25px rgba(0, 0, 0, 0.8);
-  transform: scale(1.03);
+    0 0 0 2px #00c8ff,
+    0 0 15px rgba(0, 200, 255, 0.35),
+    inset 0 0 15px rgba(0, 200, 255, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.6);
+  transform: scale(1.01);
   animation: activeGlow 2.5s ease-in-out infinite alternate;
-  border: 2px solid rgba(0, 200, 255, 0.6);
+  border: 2px solid rgba(0, 200, 255, 0.4);
   transition: all 0.3s ease;
 }
 
 .small-board.active-x {
-  background: rgba(255, 50, 80, 0.08);
+  background: rgba(255, 50, 80, 0.04);
   box-shadow: 
-    0 0 0 4px #ff3250,
-    0 0 40px rgba(255, 50, 80, 0.7),
-    0 0 80px rgba(255, 50, 80, 0.4),
-    inset 0 0 40px rgba(255, 50, 80, 0.15),
-    0 10px 30px rgba(0, 0, 0, 0.8);
-  border-color: rgba(255, 50, 80, 0.6);
+    0 0 0 2px #ff3250,
+    0 0 15px rgba(255, 50, 80, 0.35),
+    inset 0 0 15px rgba(255, 50, 80, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 50, 80, 0.4);
   animation: activeGlowRed 2.5s ease-in-out infinite alternate;
 }
 
 .small-board.active-o {
-  background: rgba(0, 200, 255, 0.08);
+  background: rgba(0, 200, 255, 0.04);
   box-shadow: 
-    0 0 0 4px #00c8ff,
-    0 0 40px rgba(0, 200, 255, 0.7),
-    0 0 80px rgba(0, 200, 255, 0.4),
-    inset 0 0 40px rgba(0, 200, 255, 0.15),
-    0 10px 30px rgba(0, 0, 0, 0.8);
-  border-color: rgba(0, 200, 255, 0.6);
+    0 0 0 2px #00c8ff,
+    0 0 15px rgba(0, 200, 255, 0.35),
+    inset 0 0 15px rgba(0, 200, 255, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.6);
+  border-color: rgba(0, 200, 255, 0.4);
   animation: activeGlowBlue 2.5s ease-in-out infinite alternate;
 }
 
@@ -56,69 +53,67 @@
 .small-board.active-o::before {
   content: '';
   position: absolute;
-  top: -6px;
-  left: -6px;
-  right: -6px;
-  bottom: -6px;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
   background: linear-gradient(45deg, 
-    rgba(0, 200, 255, 0.3), 
-    rgba(0, 200, 255, 0.1), 
-    rgba(0, 200, 255, 0.3));
-  border-radius: 20px;
+    rgba(0, 200, 255, 0.15), 
+    rgba(0, 200, 255, 0.05), 
+    rgba(0, 200, 255, 0.15));
+  border-radius: 16px;
   z-index: -1;
-  filter: blur(15px);
+  filter: blur(8px);
   animation: activeBoardGlow 2s ease-in-out infinite alternate;
   transition: all 0.6s ease;
 }
 
 .small-board.active-x::before {
   background: linear-gradient(45deg, 
-    rgba(255, 50, 80, 0.4), 
     rgba(255, 50, 80, 0.2), 
-    rgba(255, 50, 80, 0.4));
+    rgba(255, 50, 80, 0.1), 
+    rgba(255, 50, 80, 0.2));
 }
 
 .small-board.active-o::before {
   background: linear-gradient(45deg, 
-    rgba(0, 200, 255, 0.4), 
     rgba(0, 200, 255, 0.2), 
-    rgba(0, 200, 255, 0.4));
+    rgba(0, 200, 255, 0.1), 
+    rgba(0, 200, 255, 0.2));
 }
 
 .small-board.won {
-  opacity: 0.8;
+  opacity: 0.85;
   pointer-events: none;
 }
 
 .small-board.won.x {
-  background: rgba(255, 50, 80, 0.15);
-  border-color: rgba(255, 50, 80, 0.8);
+  background: rgba(255, 50, 80, 0.08);
+  border-color: rgba(255, 50, 80, 0.5);
   box-shadow: 
-    0 0 0 4px #ff3250,
-    0 0 40px rgba(255, 50, 80, 0.8),
-    0 0 80px rgba(255, 50, 80, 0.5),
-    inset 0 0 40px rgba(255, 50, 80, 0.2);
+    0 0 0 2px #ff3250,
+    0 0 15px rgba(255, 50, 80, 0.4),
+    inset 0 0 15px rgba(255, 50, 80, 0.1);
   animation: boardWinRed 3s ease-in-out infinite;
 }
 
 .small-board.won.o {
-  background: rgba(0, 200, 255, 0.15);
-  border-color: rgba(0, 200, 255, 0.8);
+  background: rgba(0, 200, 255, 0.08);
+  border-color: rgba(0, 200, 255, 0.5);
   box-shadow: 
-    0 0 0 4px #00c8ff,
-    0 0 40px rgba(0, 200, 255, 0.8),
-    0 0 80px rgba(0, 200, 255, 0.5),
-    inset 0 0 40px rgba(0, 200, 255, 0.2);
+    0 0 0 2px #00c8ff,
+    0 0 15px rgba(0, 200, 255, 0.4),
+    inset 0 0 15px rgba(0, 200, 255, 0.1);
   animation: boardWinBlue 3s ease-in-out infinite;
 }
 
 .small-board.won.tie {
-  background: rgba(150, 150, 150, 0.1);
-  border-color: rgba(150, 150, 150, 0.6);
+  background: rgba(150, 150, 150, 0.05);
+  border-color: rgba(150, 150, 150, 0.4);
   box-shadow: 
-    0 0 0 3px #888,
-    0 0 30px rgba(150, 150, 150, 0.5),
-    inset 0 0 30px rgba(150, 150, 150, 0.1);
+    0 0 0 2px #888,
+    0 0 12px rgba(150, 150, 150, 0.25),
+    inset 0 0 12px rgba(150, 150, 150, 0.05);
   animation: boardWinTie 3s ease-in-out infinite;
 }
 
@@ -131,62 +126,56 @@
 @keyframes activeGlow {
   0%, 100% { 
     box-shadow: 
-      0 0 0 4px #00c8ff,
-      0 0 40px rgba(0, 200, 255, 0.7),
-      0 0 80px rgba(0, 200, 255, 0.4),
-      inset 0 0 40px rgba(0, 200, 255, 0.15),
-      0 10px 30px rgba(0, 0, 0, 0.8);
+      0 0 0 2px #00c8ff,
+      0 0 15px rgba(0, 200, 255, 0.35),
+      inset 0 0 15px rgba(0, 200, 255, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.6);
   }
   50% { 
     box-shadow: 
-      0 0 0 6px #00c8ff,
-      0 0 60px rgba(0, 200, 255, 0.9),
-      0 0 120px rgba(0, 200, 255, 0.6),
-      inset 0 0 60px rgba(0, 200, 255, 0.25),
-      0 15px 40px rgba(0, 0, 0, 0.9);
+      0 0 0 3px #00c8ff,
+      0 0 25px rgba(0, 200, 255, 0.5),
+      inset 0 0 20px rgba(0, 200, 255, 0.12),
+      0 6px 16px rgba(0, 0, 0, 0.7);
   }
 }
 
 @keyframes activeGlowRed {
   0%, 100% { 
     box-shadow: 
-      0 0 0 4px #ff3250,
-      0 0 40px rgba(255, 50, 80, 0.7),
-      0 0 80px rgba(255, 50, 80, 0.4),
-      inset 0 0 40px rgba(255, 50, 80, 0.15),
-      0 10px 30px rgba(0, 0, 0, 0.8);
+      0 0 0 2px #ff3250,
+      0 0 15px rgba(255, 50, 80, 0.35),
+      inset 0 0 15px rgba(255, 50, 80, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.6);
   }
   50% { 
     box-shadow: 
-      0 0 0 6px #ff3250,
-      0 0 60px rgba(255, 50, 80, 0.9),
-      0 0 120px rgba(255, 50, 80, 0.6),
-      inset 0 0 60px rgba(255, 50, 80, 0.25),
-      0 15px 40px rgba(0, 0, 0, 0.9);
+      0 0 0 3px #ff3250,
+      0 0 25px rgba(255, 50, 80, 0.5),
+      inset 0 0 20px rgba(255, 50, 80, 0.12),
+      0 6px 16px rgba(0, 0, 0, 0.7);
   }
 }
 
 @keyframes activeGlowBlue {
   0%, 100% { 
     box-shadow: 
-      0 0 0 4px #00c8ff,
-      0 0 40px rgba(0, 200, 255, 0.7),
-      0 0 80px rgba(0, 200, 255, 0.4),
-      inset 0 0 40px rgba(0, 200, 255, 0.15),
-      0 10px 30px rgba(0, 0, 0, 0.8);
+      0 0 0 2px #00c8ff,
+      0 0 15px rgba(0, 200, 255, 0.35),
+      inset 0 0 15px rgba(0, 200, 255, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.6);
   }
   50% { 
     box-shadow: 
-      0 0 0 6px #00c8ff,
-      0 0 60px rgba(0, 200, 255, 0.9),
-      0 0 120px rgba(0, 200, 255, 0.6),
-      inset 0 0 60px rgba(0, 200, 255, 0.25),
-      0 15px 40px rgba(0, 0, 0, 0.9);
+      0 0 0 3px #00c8ff,
+      0 0 25px rgba(0, 200, 255, 0.5),
+      inset 0 0 20px rgba(0, 200, 255, 0.12),
+      0 6px 16px rgba(0, 0, 0, 0.7);
   }
 }
 
 @keyframes activeBoardGlow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.7; }
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.5; }
 }
 

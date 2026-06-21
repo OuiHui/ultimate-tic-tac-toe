@@ -9,12 +9,12 @@
   letter-spacing: 0.1em;
   color: #fff;
   text-shadow: 
-    0 0 15px rgba(255, 255, 255, 0.3),
-    0 0 25px rgba(0, 200, 255, 0.2);
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(0, 200, 255, 0.15);
   background: rgba(10, 10, 25, 0.8);
   padding: 12px 20px;
   border-radius: 15px;
-  border: 2px solid rgba(0, 200, 255, 0.3);
+  border: 2px solid rgba(0, 200, 255, 0.2);
   backdrop-filter: blur(10px);
   display: inline-block;
   position: relative;
@@ -23,21 +23,21 @@
 }
 
 .current-player.x-player {
-  border-color: rgba(255, 50, 80, 0.6);
+  border-color: rgba(255, 50, 80, 0.4);
   background: rgba(25, 5, 10, 0.8);
   text-shadow: 
-    0 0 15px rgba(255, 255, 255, 0.3),
-    0 0 25px rgba(255, 50, 80, 0.3);
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(255, 50, 80, 0.2);
   animation: currentPlayerGlowRed 3s ease-in-out infinite alternate;
 }
 
 .current-player.x-player .current-player-label {
   color: #ff3250;
-  text-shadow: 0 0 15px rgba(255, 50, 80, 0.6);
+  text-shadow: 0 0 8px rgba(255, 50, 80, 0.4);
 }
 
 .current-player.o-player {
-  border-color: rgba(0, 200, 255, 0.6);
+  border-color: rgba(0, 200, 255, 0.4);
   background: rgba(5, 15, 25, 0.8);
 
   animation: currentPlayerGlowBlue 3s ease-in-out infinite alternate;
@@ -45,7 +45,7 @@
 
 .current-player.o-player .current-player-label {
   color: #00c8ff;
-  text-shadow: 0 0 15px rgba(0, 200, 255, 0.6);
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.4);
 }
 
 .current-player-label {
@@ -56,34 +56,34 @@
 .current-player::before {
   content: '';
   position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
   background: linear-gradient(45deg, 
-    rgba(0, 200, 255, 0.3), 
-    rgba(255, 50, 80, 0.2), 
-    rgba(0, 200, 255, 0.3));
+    rgba(0, 200, 255, 0.15), 
+    rgba(255, 50, 80, 0.1), 
+    rgba(0, 200, 255, 0.15));
   border-radius: 18px;
   z-index: -1;
-  filter: blur(8px);
-  opacity: 0.6;
+  filter: blur(5px);
+  opacity: 0.5;
   animation: currentPlayerHalo 4s ease-in-out infinite;
   transition: all 0.3s ease;
 }
 
 .current-player.x-player::before {
   background: linear-gradient(45deg, 
-    rgba(255, 50, 80, 0.4), 
     rgba(255, 50, 80, 0.2), 
-    rgba(255, 50, 80, 0.4));
+    rgba(255, 50, 80, 0.1), 
+    rgba(255, 50, 80, 0.2));
 }
 
 .current-player.o-player::before {
   background: linear-gradient(45deg, 
-    rgba(0, 200, 255, 0.4), 
     rgba(0, 200, 255, 0.2), 
-    rgba(0, 200, 255, 0.4));
+    rgba(0, 200, 255, 0.1), 
+    rgba(0, 200, 255, 0.2));
 }
 
 .game-instruction {
@@ -99,15 +99,13 @@
 .game-instruction.x-theme {
   color: #ff3250;
   text-shadow: 
-    0 0 10px rgba(255, 50, 80, 0.6),
-    0 0 20px rgba(255, 50, 80, 0.3);
+    0 0 6px rgba(255, 50, 80, 0.4);
 }
 
 .game-instruction.o-theme {
   color: #00c8ff;
   text-shadow: 
-    0 0 10px rgba(0, 200, 255, 0.6),
-    0 0 20px rgba(0, 200, 255, 0.3);
+    0 0 6px rgba(0, 200, 255, 0.4);
 }
 
 /* Winner Status Styles */
@@ -116,7 +114,7 @@
   padding: 16px 24px;
   border-width: 3px;
   animation: winnerStatusGlow 2s ease-in-out infinite alternate;
-  transform: scale(1.1);
+  transform: scale(1.03);
 }
 
 .current-player.winner .current-player-label {
@@ -126,100 +124,94 @@
 
 .current-player.winner::before {
   animation: none;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .current-player.winner.x-winner {
-  border-color: rgba(255, 50, 80, 1);
+  border-color: rgba(255, 50, 80, 0.8);
   background: rgba(40, 5, 10, 0.95);
   box-shadow: 
-    0 0 50px rgba(255, 50, 80, 0.8),
-    0 0 100px rgba(255, 50, 80, 0.6),
-    inset 0 0 40px rgba(255, 50, 80, 0.2);
+    0 0 20px rgba(255, 50, 80, 0.4),
+    0 0 40px rgba(255, 50, 80, 0.25),
+    inset 0 0 20px rgba(255, 50, 80, 0.1);
 }
 
 .current-player.winner.o-winner {
-  border-color: rgba(0, 200, 255, 1);
+  border-color: rgba(0, 200, 255, 0.8);
   background: rgba(5, 20, 40, 0.95);
   box-shadow: 
-    0 0 50px rgba(0, 200, 255, 0.8),
-    0 0 100px rgba(0, 200, 255, 0.6),
-    inset 0 0 40px rgba(0, 200, 255, 0.2);
+    0 0 20px rgba(0, 200, 255, 0.4),
+    0 0 40px rgba(0, 200, 255, 0.25),
+    inset 0 0 20px rgba(0, 200, 255, 0.1);
 }
 
 .current-player.winner.tie-winner {
-  border-color: rgba(150, 150, 150, 0.8);
+  border-color: rgba(150, 150, 150, 0.6);
   background: rgba(20, 20, 20, 0.95);
   box-shadow: 
-    0 0 40px rgba(150, 150, 150, 0.6),
-    0 0 80px rgba(150, 150, 150, 0.4),
-    inset 0 0 30px rgba(150, 150, 150, 0.15);
+    0 0 15px rgba(150, 150, 150, 0.3),
+    0 0 30px rgba(150, 150, 150, 0.2),
+    inset 0 0 15px rgba(150, 150, 150, 0.08);
 }
 
 @keyframes currentPlayerGlow {
   0%, 100% { 
-    border-color: rgba(0, 200, 255, 0.3);
+    border-color: rgba(0, 200, 255, 0.2);
     box-shadow: 
-      0 0 20px rgba(0, 200, 255, 0.4),
-      0 0 40px rgba(0, 200, 255, 0.2),
-      inset 0 0 20px rgba(0, 200, 255, 0.1);
+      0 0 10px rgba(0, 200, 255, 0.25),
+      inset 0 0 10px rgba(0, 200, 255, 0.05);
   }
   50% { 
-    border-color: rgba(0, 200, 255, 0.6);
+    border-color: rgba(0, 200, 255, 0.4);
     box-shadow: 
-      0 0 30px rgba(0, 200, 255, 0.6),
-      0 0 60px rgba(0, 200, 255, 0.4),
-      inset 0 0 30px rgba(0, 200, 255, 0.2);
+      0 0 15px rgba(0, 200, 255, 0.4),
+      inset 0 0 15px rgba(0, 200, 255, 0.1);
   }
 }
 
 @keyframes currentPlayerGlowRed {
   0%, 100% { 
-    border-color: rgba(255, 50, 80, 0.6);
+    border-color: rgba(255, 50, 80, 0.4);
     box-shadow: 
-      0 0 20px rgba(255, 50, 80, 0.4),
-      0 0 40px rgba(255, 50, 80, 0.2),
-      inset 0 0 20px rgba(255, 50, 80, 0.1);
+      0 0 10px rgba(255, 50, 80, 0.25),
+      inset 0 0 10px rgba(255, 50, 80, 0.05);
   }
   50% { 
-    border-color: rgba(255, 50, 80, 0.9);
+    border-color: rgba(255, 50, 80, 0.6);
     box-shadow: 
-      0 0 30px rgba(255, 50, 80, 0.6),
-      0 0 60px rgba(255, 50, 80, 0.4),
-      inset 0 0 30px rgba(255, 50, 80, 0.2);
+      0 0 15px rgba(255, 50, 80, 0.4),
+      inset 0 0 15px rgba(255, 50, 80, 0.1);
   }
 }
 
 @keyframes currentPlayerGlowBlue {
   0%, 100% { 
-    border-color: rgba(0, 200, 255, 0.6);
+    border-color: rgba(0, 200, 255, 0.4);
     box-shadow: 
-      0 0 20px rgba(0, 200, 255, 0.4),
-      0 0 40px rgba(0, 200, 255, 0.2),
-      inset 0 0 20px rgba(0, 200, 255, 0.1);
+      0 0 10px rgba(0, 200, 255, 0.25),
+      inset 0 0 10px rgba(0, 200, 255, 0.05);
   }
   50% { 
-    border-color: rgba(0, 200, 255, 0.9);
+    border-color: rgba(0, 200, 255, 0.6);
     box-shadow: 
-      0 0 30px rgba(0, 200, 255, 0.6),
-      0 0 60px rgba(0, 200, 255, 0.4),
-      inset 0 0 30px rgba(0, 200, 255, 0.2);
+      0 0 15px rgba(0, 200, 255, 0.4),
+      inset 0 0 15px rgba(0, 200, 255, 0.1);
   }
 }
 
 @keyframes currentPlayerHalo {
-  0%, 100% { opacity: 0.6; filter: blur(8px); }
-  50% { opacity: 0.9; filter: blur(12px); }
+  0%, 100% { opacity: 0.4; filter: blur(5px); }
+  50% { opacity: 0.7; filter: blur(8px); }
 }
 
 @keyframes winnerStatusGlow {
   0% { 
     filter: brightness(1) saturate(1);
-    text-shadow: 0 0 15px currentColor;
+    text-shadow: 0 0 8px currentColor;
   }
   100% { 
-    filter: brightness(1.2) saturate(1.4);
-    text-shadow: 0 0 25px currentColor, 0 0 40px currentColor;
+    filter: brightness(1.1) saturate(1.2);
+    text-shadow: 0 0 12px currentColor, 0 0 18px currentColor;
   }
 }
 

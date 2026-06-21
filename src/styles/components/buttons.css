@@ -15,36 +15,33 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0.5rem;
   box-shadow: 
-    0 0 20px rgba(0, 200, 255, 0.4), 
-    0 0 40px rgba(0, 200, 255, 0.2),
-    inset 0 0 20px rgba(0, 200, 255, 0.05),
-    0 8px 25px rgba(0, 0, 0, 0.6);
+    0 0 8px rgba(0, 200, 255, 0.2), 
+    inset 0 0 10px rgba(0, 200, 255, 0.05),
+    0 4px 15px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+  text-shadow: 0 0 5px rgba(0, 200, 255, 0.4);
 }
 
 .x-turn .button {
-  border-color: rgba(255, 50, 80, 0.8);
+  border-color: rgba(255, 50, 80, 0.5);
   color: #ff3250;
   box-shadow: 
-    0 0 20px rgba(255, 50, 80, 0.4), 
-    0 0 40px rgba(255, 50, 80, 0.2),
-    inset 0 0 20px rgba(255, 50, 80, 0.05),
-    0 8px 25px rgba(0, 0, 0, 0.6);
-  text-shadow: 0 0 10px rgba(255, 50, 80, 0.6);
+    0 0 8px rgba(255, 50, 80, 0.2), 
+    inset 0 0 10px rgba(255, 50, 80, 0.05),
+    0 4px 15px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 5px rgba(255, 50, 80, 0.4);
 }
 
 .o-turn .button {
-  border-color: rgba(0, 200, 255, 0.8);
+  border-color: rgba(0, 200, 255, 0.5);
   color: #00c8ff;
   box-shadow: 
-    0 0 20px rgba(0, 200, 255, 0.4), 
-    0 0 40px rgba(0, 200, 255, 0.2),
-    inset 0 0 20px rgba(0, 200, 255, 0.05),
-    0 8px 25px rgba(0, 0, 0, 0.6);
-  text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+    0 0 8px rgba(0, 200, 255, 0.2), 
+    inset 0 0 10px rgba(0, 200, 255, 0.05),
+    0 4px 15px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 5px rgba(0, 200, 255, 0.4);
 }
 
 .button::before {
@@ -55,9 +52,9 @@
   right: -3px;
   bottom: -3px;
   background: linear-gradient(45deg, 
-    rgba(0, 200, 255, 0.4), 
     rgba(0, 200, 255, 0.2), 
-    rgba(0, 200, 255, 0.4));
+    rgba(0, 200, 255, 0.1), 
+    rgba(0, 200, 255, 0.2));
   border-radius: 33px;
   z-index: -1;
   display: none; /* removed color halo layer */
@@ -74,52 +71,48 @@
 }
 
 .button:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(255, 50, 80, 0.9);
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(255, 50, 80, 0.7);
   color: #ff3250;
   box-shadow: 
-    0 0 30px rgba(255, 50, 80, 0.7), 
-    0 0 60px rgba(255, 50, 80, 0.4),
-    0 0 90px rgba(255, 50, 80, 0.2),
-    0 12px 35px rgba(0, 0, 0, 0.8);
+    0 0 15px rgba(255, 50, 80, 0.4), 
+    inset 0 0 15px rgba(255, 50, 80, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
 /* swipe/halo effects removed */
 
 .button:active {
-  transform: translateY(-1px) scale(0.98);
-  border-color: rgba(255, 50, 80, 1);
+  transform: translateY(-1px) scale(0.99);
+  border-color: rgba(255, 50, 80, 0.8);
   box-shadow: 
-    0 0 20px rgba(255, 50, 80, 0.9), 
-    0 0 40px rgba(255, 50, 80, 0.6),
-    inset 0 0 20px rgba(255, 50, 80, 0.2),
-    0 6px 20px rgba(255, 50, 80, 0.8);
+    0 0 10px rgba(255, 50, 80, 0.5), 
+    inset 0 0 10px rgba(255, 50, 80, 0.15),
+    0 3px 12px rgba(0, 0, 0, 0.7);
   background: rgba(0, 0, 0, 1);
 }
 
 /* Player X turn button hover - blue effect */
 .x-turn .button:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(0, 200, 255, 0.9);
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(0, 200, 255, 0.7);
   color: #00c8ff;
   box-shadow: 
-    0 0 30px rgba(0, 200, 255, 0.7), 
-    0 0 60px rgba(0, 200, 255, 0.4),
-    0 0 90px rgba(0, 200, 255, 0.2),
-    0 12px 35px rgba(0, 0, 0, 0.8);
-  text-shadow: 0 0 15px rgba(0, 200, 255, 0.8);
+    0 0 15px rgba(0, 200, 255, 0.4), 
+    inset 0 0 15px rgba(0, 200, 255, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.6);
 }
 
 /* swipe/halo effects removed */
 
 .x-turn .button:active {
-  transform: translateY(-1px) scale(0.98);
-  border-color: rgba(0, 200, 255, 1);
+  transform: translateY(-1px) scale(0.99);
+  border-color: rgba(0, 200, 255, 0.8);
   box-shadow: 
-    0 0 20px rgba(0, 200, 255, 0.9), 
-    0 0 40px rgba(0, 200, 255, 0.6),
-    inset 0 0 20px rgba(0, 200, 255, 0.2),
-    0 6px 20px rgba(0, 200, 255, 0.8);
+    0 0 10px rgba(0, 200, 255, 0.5), 
+    inset 0 0 10px rgba(0, 200, 255, 0.15),
+    0 3px 12px rgba(0, 0, 0, 0.7);
   background: rgba(0, 0, 0, 1);
 }
 
@@ -136,24 +129,23 @@
 /* ── Hint button (gold) ──────────────────────────────────────────────────── */
 
 .button.button-hint {
-  border-color: rgba(255, 215, 0, 0.8);
+  border-color: rgba(255, 215, 0, 0.5);
   color: #ffd700;
   box-shadow:
-    0 0 20px rgba(255, 215, 0, 0.4),
-    0 0 40px rgba(255, 215, 0, 0.2),
-    inset 0 0 20px rgba(255, 215, 0, 0.05),
-    0 8px 25px rgba(0, 0, 0, 0.6);
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    0 0 8px rgba(255, 215, 0, 0.2),
+    inset 0 0 10px rgba(255, 215, 0, 0.05),
+    0 4px 15px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
 }
 
 .button.button-hint:hover {
-  border-color: rgba(255, 215, 0, 1);
+  border-color: rgba(255, 215, 0, 0.8);
   color: #ffec6e;
   box-shadow:
-    0 0 30px rgba(255, 215, 0, 0.8),
-    0 0 60px rgba(255, 215, 0, 0.5),
-    0 12px 35px rgba(0, 0, 0, 0.8);
-  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
+    0 0 15px rgba(255, 215, 0, 0.4),
+    inset 0 0 15px rgba(255, 215, 0, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
 .button.button-hint:disabled {
@@ -165,23 +157,22 @@
 /* ── Undo button (purple) ────────────────────────────────────────────────── */
 
 .button.button-undo {
-  border-color: rgba(180, 100, 255, 0.8);
+  border-color: rgba(180, 100, 255, 0.5);
   color: #c87dff;
   box-shadow:
-    0 0 20px rgba(180, 100, 255, 0.4),
-    0 0 40px rgba(180, 100, 255, 0.2),
-    inset 0 0 20px rgba(180, 100, 255, 0.05),
-    0 8px 25px rgba(0, 0, 0, 0.6);
-  text-shadow: 0 0 10px rgba(180, 100, 255, 0.6);
+    0 0 8px rgba(180, 100, 255, 0.2),
+    inset 0 0 10px rgba(180, 100, 255, 0.05),
+    0 4px 15px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 5px rgba(180, 100, 255, 0.4);
 }
 
 .button.button-undo:hover {
-  border-color: rgba(180, 100, 255, 1);
+  border-color: rgba(180, 100, 255, 0.8);
   color: #dba8ff;
   box-shadow:
-    0 0 30px rgba(180, 100, 255, 0.8),
-    0 0 60px rgba(180, 100, 255, 0.5),
-    0 12px 35px rgba(0, 0, 0, 0.8);
-  text-shadow: 0 0 15px rgba(180, 100, 255, 0.9);
+    0 0 15px rgba(180, 100, 255, 0.4),
+    inset 0 0 15px rgba(180, 100, 255, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 8px rgba(180, 100, 255, 0.6);
 }
 
