@@ -1,0 +1,273 @@
+/* Evaluation Bar Styles */
+
+/* ── Board area wrapper: places EvalBar left of the SuperBoard ── */
+.board-area {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
+/* ── Outer wrapper for the bar + labels ── */
+.eval-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 44px;
+  padding: 4px 0;
+}
+
+/* ── Top / bottom label containers ── */
+.eval-bar-top-label,
+.eval-bar-bottom-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Player letter labels (X / O) ── */
+.eval-bar-player-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.eval-bar-x-label {
+  color: #ff3250;
+  text-shadow: 0 0 8px rgba(255, 50, 80, 0.8);
+}
+
+.eval-bar-o-label {
+  color: #00c8ff;
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.8);
+}
+
+/* ── "you" indicator ── */
+.eval-bar-you-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+
+/* ── The bar itself ── */
+.eval-bar {
+  flex: 1;
+  width: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow:
+    0 0 18px rgba(0, 0, 0, 0.7),
+    inset 0 0 12px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(255, 255, 255, 0.04);
+  min-height: 180px;
+}
+
+/* X segment — grows from top */
+.eval-bar-x-fill {
+  width: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 50, 80, 0.95),
+    rgba(200, 30, 60, 0.65)
+  );
+  transition: height 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(255, 50, 80, 0.5);
+}
+
+/* O segment — fills remaining space */
+.eval-bar-o-fill {
+  width: 100%;
+  flex: 1;
+  background: linear-gradient(
+    to top,
+    rgba(0, 200, 255, 0.95),
+    rgba(0, 160, 210, 0.65)
+  );
+  box-shadow: 0 -4px 10px rgba(0, 200, 255, 0.5);
+}
+
+/* Sliding divider line */
+.eval-bar-divider {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 6px rgba(255, 255, 255, 0.9),
+    0 0 14px rgba(255, 255, 255, 0.4);
+  transform: translateY(-50%);
+  transition: top 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Numeric score */
+.eval-bar-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  letter-spacing: 0.04em;
+  min-height: 0.8em;
+  flex-shrink: 0;
+}
+
+/* ── Bot thinking indicator ── */
+.bot-thinking-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  margin: 4px 0 -4px;
+  height: 1.4em;
+}
+
+.bot-thinking-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.bot-thinking-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: thinkingPulse 1.2s ease-in-out infinite;
+}
+
+.bot-thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.bot-thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes thinkingPulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%           { opacity: 1;   transform: scale(1.2); }
+}
+
+/* ── AI options panel (Start Menu) ── */
+.ai-options {
+  background: rgba(5, 5, 15, 0.5);
+  border-radius: 15px;
+  padding: 1.5rem 1.2rem 1.2rem;
+  margin-top: 1.2em;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0 25px rgba(255, 50, 80, 0.2),
+    inset 0 0 20px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+.ai-options-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.2em;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.ai-option-group {
+  margin-bottom: 1.1em;
+}
+
+.ai-option-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.55em;
+}
+
+.ai-option-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.ai-option-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 20px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.ai-option-btn:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ai-option-btn.selected-x {
+  border-color: rgba(255, 50, 80, 0.8);
+  background: rgba(255, 50, 80, 0.15);
+  color: #ff3250;
+  box-shadow: 0 0 12px rgba(255, 50, 80, 0.4);
+  text-shadow: 0 0 8px rgba(255, 50, 80, 0.6);
+}
+
+.ai-option-btn.selected-o {
+  border-color: rgba(0, 200, 255, 0.8);
+  background: rgba(0, 200, 255, 0.15);
+  color: #00c8ff;
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.4);
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.6);
+}
+
+.ai-option-btn.selected-neutral {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* ── Reduced-motion & perf-low overrides ── */
+@media (prefers-reduced-motion: reduce) {
+  .eval-bar-x-fill,
+  .eval-bar-divider,
+  .bot-thinking-dots span { transition: none; animation: none; }
+}
+
+body.perf-low .eval-bar-x-fill,
+body.perf-low .eval-bar-divider { transition: none; }
+
+body.perf-low .eval-bar-x-fill,
+body.perf-low .eval-bar-o-fill { box-shadow: none; }
+
+body.perf-low .eval-bar { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08); }
+
+body.perf-low .bot-thinking-dots span { animation: none; opacity: 0.5; }

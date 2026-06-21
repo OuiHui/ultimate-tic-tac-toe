@@ -1,4 +1,4 @@
-function GameStatus({ gameState, myPlayer }) {
+function GameStatus({ gameState, myPlayer, gameMode, playerColor }) {
   const getPlayerStatusClass = () => {
     if (gameState.gameOver) {
       if (gameState.gameWinner === 'tie') {
@@ -14,6 +14,10 @@ function GameStatus({ gameState, myPlayer }) {
     if (gameState.gameOver) {
       if (gameState.gameWinner === 'tie') {
         return 'Game Tied!'
+      } else if (gameMode === 'bot') {
+        return gameState.gameWinner === playerColor ? 'You Win!' : 'AI Wins!'
+      } else if (gameMode === 'online' && myPlayer && myPlayer !== 'spectator') {
+        return gameState.gameWinner === myPlayer ? 'You Win!' : 'Opponent Wins!'
       } else {
         return `Player ${gameState.gameWinner} Wins!`
       }

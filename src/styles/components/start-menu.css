@@ -280,3 +280,79 @@
   }
 }
 
+/* ── Specific overrides for AI option buttons inside the start menu ── */
+.start-menu .ai-option-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  flex: 1;
+  padding: 8px 10px;
+  margin: 0;
+  border-radius: 20px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+  box-shadow: none;
+  text-shadow: none;
+  transform: none;
+  backdrop-filter: none;
+}
+
+/* Override the hover/active states that were styled like giant menu buttons */
+.start-menu .ai-option-btn:hover {
+  transform: none !important;
+  scale: 1 !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.start-menu .ai-option-btn:active {
+  transform: scale(0.95) !important;
+  box-shadow: none !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Selected state overrides to make styling robust and specific */
+.start-menu .ai-option-btn.selected-x {
+  border-color: rgba(255, 50, 80, 0.8) !important;
+  background: rgba(255, 50, 80, 0.15) !important;
+  color: #ff3250 !important;
+  box-shadow: 0 0 12px rgba(255, 50, 80, 0.4) !important;
+  text-shadow: 0 0 8px rgba(255, 50, 80, 0.6) !important;
+}
+
+.start-menu .ai-option-btn.selected-o {
+  border-color: rgba(0, 200, 255, 0.8) !important;
+  background: rgba(0, 200, 255, 0.15) !important;
+  color: #00c8ff !important;
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.4) !important;
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.6) !important;
+}
+
+.start-menu .ai-option-btn.selected-neutral {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Completely suppress the pseudo-elements added by primary menu button styles */
+.start-menu .ai-option-btn::before,
+.start-menu .ai-option-btn:hover::before,
+.start-menu .ai-option-btn::after,
+.start-menu .ai-option-btn:hover::after {
+  display: none !important;
+  content: none !important;
+  opacity: 0 !important;
+}
+
