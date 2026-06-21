@@ -155,3 +155,41 @@
   text-shadow: 0 0 20px rgba(0, 200, 255, 1);
   animation: valueGlow 1s ease-in-out infinite alternate;
 }
+
+@keyframes activePulse {
+  0% { 
+    transform: scale(1.05);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.06);
+    filter: brightness(1.05);
+  }
+  100% { 
+    transform: scale(1.05);
+    filter: brightness(1);
+  }
+}
+
+@keyframes textGlow {
+  0% { 
+    opacity: 0.95;
+    text-shadow: 0 0 6px currentColor;
+  }
+  100% { 
+    opacity: 1;
+    text-shadow: 0 0 8px currentColor, 0 0 12px currentColor;
+  }
+}
+
+@keyframes valueGlow {
+  0% { 
+    transform: scale(1);
+    text-shadow: 0 0 15px currentColor;
+  }
+  100% { 
+    transform: scale(1.01);
+    text-shadow: 0 0 12px currentColor, 0 0 18px currentColor;
+  }
+}
+

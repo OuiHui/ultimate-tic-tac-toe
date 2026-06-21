@@ -122,3 +122,61 @@
 .game-container.tie-winner::after {
   animation: tieBorderGlow 3s ease-in-out infinite alternate reverse;
 }
+
+@keyframes borderGlow {
+  0% { opacity: 0.6; }
+  100% { opacity: 0.9; }
+}
+
+@keyframes winnerPulse {
+  0% { 
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.15) saturate(1.3);
+  }
+  100% { 
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+@keyframes tieWinnerPulse {
+  0% { 
+    transform: scale(1);
+    filter: brightness(1) saturate(0.8);
+  }
+  50% {
+    transform: scale(1.01);
+    filter: brightness(1.1) saturate(1);
+  }
+  100% { 
+    transform: scale(1);
+    filter: brightness(1) saturate(0.8);
+  }
+}
+
+@keyframes winnerBorderGlow {
+  0% { 
+    opacity: 0.8;
+    filter: blur(15px);
+  }
+  100% { 
+    opacity: 1;
+    filter: blur(20px);
+  }
+}
+
+@keyframes tieBorderGlow {
+  0% { 
+    opacity: 0.6;
+    filter: blur(12px);
+  }
+  100% { 
+    opacity: 0.9;
+    filter: blur(18px);
+  }
+}
+

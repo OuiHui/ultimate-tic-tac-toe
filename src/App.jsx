@@ -1,7 +1,7 @@
 import { useState, Suspense, lazy } from 'react'
 const StartMenu = lazy(() => import('./components/StartMenu'))
 const GameContainer = lazy(() => import('./components/GameContainer'))
-import { FirebaseProvider } from './contexts/FirebaseContext'
+import { SupabaseProvider } from './contexts/SupabaseContext'
 import './styles/index.css'
 
 function App() {
@@ -19,7 +19,7 @@ function App() {
   }
 
   return (
-    <FirebaseProvider>
+    <SupabaseProvider>
       <div className={`App ${appClass}`}>
         <Suspense fallback={null}>
           {gameMode === 'menu' && (
@@ -34,7 +34,7 @@ function App() {
           )}
         </Suspense>
       </div>
-    </FirebaseProvider>
+    </SupabaseProvider>
   )
 }
 

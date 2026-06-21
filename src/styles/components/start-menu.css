@@ -262,3 +262,21 @@
 .start-menu:hover::before {
   opacity: 0;
 }
+
+@keyframes subtitleGlow {
+  0% { 
+    opacity: 0.7;
+    text-shadow: 
+      0 0 8px rgba(255, 255, 255, 0.3),
+      0 0 15px rgba(0, 200, 255, 0.3),
+      0 0 25px rgba(0, 200, 255, 0.1);
+  }
+  100% { 
+    opacity: 0.9;
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.4),
+      0 0 20px rgba(0, 200, 255, 0.5),
+      0 0 30px rgba(0, 200, 255, 0.3);
+  }
+}
+

@@ -138,3 +138,9 @@
     0 15px 40px rgba(0, 0, 0, 0.8);
   animation: boardWinTie 3s ease-in-out infinite;
 }
+
+@keyframes boardGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
