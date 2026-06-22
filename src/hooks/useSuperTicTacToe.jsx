@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { initTimers, startTicking, stopTicking } from '../stores/timerStore'
+import { WIN_PATTERNS } from '../utils/constants.js'
 
 const DEFAULT_TIME = 300 // 5 minutes in seconds
 
@@ -58,12 +59,7 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
   }, [isLocalGame, gameState.currentPlayer, gameState.gameOver, gameState.gameStarted])
 
   const checkWin = (board) => {
-    const winPatterns = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8],
-      [0, 3, 6], [1, 4, 7], [2, 5, 8],
-      [0, 4, 8], [2, 4, 6]
-    ]
-    for (const pattern of winPatterns) {
+    for (const pattern of WIN_PATTERNS) {
       const [a, b, c] = pattern
       if (board[a] && board[a] === board[b] && board[a] === board[c]) {
         return board[a]

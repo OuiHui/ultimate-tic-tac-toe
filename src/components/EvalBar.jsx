@@ -18,6 +18,12 @@ function EvalBar({ score, playerColor }) {
     return (rounded > 0 ? '+' : '') + rounded
   }, [score])
 
+  const scoreColor = useMemo(() => {
+    const rounded = Math.round(score ?? 0)
+    if (Math.abs(rounded) < 1) return 'inherit'
+    return rounded > 0 ? '#ff3250' : '#00c8ff'
+  }, [score])
+
   const humanIsX = playerColor === 'X'
 
   return (
@@ -36,7 +42,7 @@ function EvalBar({ score, playerColor }) {
         <div className="eval-bar-o-fill" />
       </div>
 
-      <div className="eval-bar-score">{scoreLabel}</div>
+      <div className="eval-bar-score" style={{ color: scoreColor }}>{scoreLabel}</div>
 
       <div className="eval-bar-bottom-label">
         {!humanIsX && <span className="eval-bar-you-tag">you</span>}

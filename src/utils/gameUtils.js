@@ -1,12 +1,10 @@
 // Custom game utilities and helper functions
+import { WIN_PATTERNS } from './constants.js'
+
 export const GAME_CONSTANTS = {
   INITIAL_TIME: 500,
   BOARD_SIZE: 9,
-  WIN_PATTERNS: [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-    [0, 4, 8], [2, 4, 6] // diagonals
-  ]
+  WIN_PATTERNS
 }
 
 export const generateGameCode = () => {

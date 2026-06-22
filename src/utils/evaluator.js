@@ -1,14 +1,7 @@
 // Position evaluator for Ultimate Tic Tac Toe
 // Returns score from X's perspective: +100 = X wins, -100 = O wins.
 
-const WIN_PATTERNS = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-  [0, 3, 6], [1, 4, 7], [2, 5, 8], // cols
-  [0, 4, 8], [2, 4, 6],             // diags
-]
-
-// Center > corners > edges
-const POSITION_WEIGHTS = [2, 1, 2, 1, 3, 1, 2, 1, 2]
+import { WIN_PATTERNS, POSITION_WEIGHTS } from './constants.js'
 
 /**
  * Score one set of 9 cells for a given player.
@@ -18,6 +11,7 @@ function scoreBoard(cells, player) {
   const opp = player === 'X' ? 'O' : 'X'
   let score = 0
   for (const [a, b, c] of WIN_PATTERNS) {
+    if (cells[a] === 'tie' || cells[b] === 'tie' || cells[c] === 'tie') continue
     const pc = (cells[a] === player) + (cells[b] === player) + (cells[c] === player)
     const oc = (cells[a] === opp)    + (cells[b] === opp)    + (cells[c] === opp)
     if (oc === 0) {
@@ -48,7 +42,7 @@ export function evaluatePosition(gameState) {
   let score = 0
 
   // --- Macro-board pattern score (won boards form a meta 3×3) ---
-  const metaBoard = wonBoards.map(w => (w === 'tie' ? '' : w))
+  const metaBoard = wonBoards
   score += scoreBoard(metaBoard, 'X') * 3
 
   // --- Individual small-board wins with positional weight ---
@@ -67,12 +61,28 @@ export function evaluatePosition(gameState) {
   for (let i = 0; i < 9; i++) {
     if (!wonBoards[i]) {
       for (let j = 0; j < 9; j++) {
-        if      (boards[i][j] === 'X') score += POSITION_WEIGHTS[j] * 0.1
-        else if (boards[i][j] === 'O') score -= POSITION_WEIGHTS[j] * 0.1
+        if      (boards[i][j] === 'X') score += POSITION_WEIGHTS[j] * 0.05
+        else if (boards[i][j] === 'O') score -= POSITION_WEIGHTS[j] * 0.05
       }
     }
   }
 
+  // --- Active board advantage ---
+  const { currentPlayer, activeBoard } = gameState
+  let activeAdvantage = 0
+
+  if (activeBoard === null) {
+    activeAdvantage = 15 // Free move anywhere
+  } else {
+    activeAdvantage = POSITION_WEIGHTS[activeBoard] * 1.5
+    activeAdvantage += scoreBoard(boards[activeBoard], currentPlayer) * 0.2
+  }
+
+  if (currentPlayer === 'X') {
+    score += activeAdvantage
+  } else {
+    score -= activeAdvantage
+  }
   return Math.max(-99, Math.min(99, score))
 }
 

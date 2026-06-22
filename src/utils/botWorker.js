@@ -2,15 +2,9 @@
 // Receives: { type: 'BOT_MOVE' | 'HINT', gameState, difficulty, botPlayer }
 // Posts back: { type: ..., move: { boardIndex, cellIndex } | null }
 
+import { WIN_PATTERNS, POSITION_WEIGHTS } from './constants.js'
+
 // ── Inline copies of the pure-JS engine (no React imports) ───────────────────
-
-const WIN_PATTERNS = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6],
-]
-
-const POSITION_WEIGHTS = [2, 1, 2, 1, 3, 1, 2, 1, 2]
 
 function checkWinner(cells) {
   for (const [a, b, c] of WIN_PATTERNS) {
@@ -23,6 +17,7 @@ function scoreBoard(cells, player) {
   const opp = player === 'X' ? 'O' : 'X'
   let score = 0
   for (const [a, b, c] of WIN_PATTERNS) {
+    if (cells[a] === 'tie' || cells[b] === 'tie' || cells[c] === 'tie') continue
     const pc = (cells[a] === player) + (cells[b] === player) + (cells[c] === player)
     const oc = (cells[a] === opp) + (cells[b] === opp) + (cells[c] === opp)
     if (oc === 0) {
@@ -45,7 +40,7 @@ function evaluatePosition(gameState) {
     return 0
   }
   let score = 0
-  const metaBoard = wonBoards.map(w => (w === 'tie' ? '' : w))
+  const metaBoard = wonBoards
   score += scoreBoard(metaBoard, 'X') * 3
   for (let i = 0; i < 9; i++) {
     const w = wonBoards[i]
@@ -57,10 +52,23 @@ function evaluatePosition(gameState) {
   for (let i = 0; i < 9; i++) {
     if (!wonBoards[i]) {
       for (let j = 0; j < 9; j++) {
-        if      (boards[i][j] === 'X') score += POSITION_WEIGHTS[j] * 0.1
-        else if (boards[i][j] === 'O') score -= POSITION_WEIGHTS[j] * 0.1
+        if      (boards[i][j] === 'X') score += POSITION_WEIGHTS[j] * 0.05
+        else if (boards[i][j] === 'O') score -= POSITION_WEIGHTS[j] * 0.05
       }
     }
+  }
+  const { currentPlayer, activeBoard } = gameState
+  let activeAdvantage = 0
+  if (activeBoard === null) {
+    activeAdvantage = 15
+  } else {
+    activeAdvantage = POSITION_WEIGHTS[activeBoard] * 1.5
+    activeAdvantage += scoreBoard(boards[activeBoard], currentPlayer) * 0.2
+  }
+  if (currentPlayer === 'X') {
+    score += activeAdvantage
+  } else {
+    score -= activeAdvantage
   }
   return Math.max(-99, Math.min(99, score))
 }
