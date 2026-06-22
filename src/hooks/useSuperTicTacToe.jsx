@@ -144,10 +144,7 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
       }
     }
     if (!target) return false
-    stopTicking()
     setGameState(target)
-    // Re-init timer store to match the restored state
-    initTimers(target.playerXTime, target.playerOTime)
     return true
   }
 

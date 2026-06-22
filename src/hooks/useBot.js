@@ -73,15 +73,23 @@ export function useBot(gameState, gameMode, difficulty, botPlayer, makeMove) {
 
     const snapshot = { ...gameState }
 
+    const targetDelay = Math.floor(Math.random() * 1000) + 1000 // 1-2 seconds
+    const startTime = Date.now()
+
     if (workerRef.current) {
       const worker = workerRef.current
 
       const handleMessage = (e) => {
         worker.removeEventListener('message', handleMessage)
         const { move } = e.data
-        if (move) makeMoveRef.current(move.boardIndex, move.cellIndex)
-        thinkingRef.current = false
-        setIsThinking(false)
+        const elapsed = Date.now() - startTime
+        const remainingDelay = Math.max(0, targetDelay - elapsed)
+
+        timeoutRef.current = setTimeout(() => {
+          if (move) makeMoveRef.current(move.boardIndex, move.cellIndex)
+          thinkingRef.current = false
+          setIsThinking(false)
+        }, remainingDelay)
       }
 
       // Small delay so React renders the "thinking" indicator first
@@ -99,11 +107,16 @@ export function useBot(gameState, gameMode, difficulty, botPlayer, makeMove) {
       timeoutRef.current = setTimeout(() => {
         import('../utils/botEngine.js').then(({ getBotMove }) => {
           const move = getBotMove(snapshot, difficulty, botPlayer)
-          if (move) makeMoveRef.current(move.boardIndex, move.cellIndex)
-          thinkingRef.current = false
-          setIsThinking(false)
+          const elapsed = Date.now() - startTime
+          const remainingDelay = Math.max(0, targetDelay - elapsed)
+
+          timeoutRef.current = setTimeout(() => {
+            if (move) makeMoveRef.current(move.boardIndex, move.cellIndex)
+            thinkingRef.current = false
+            setIsThinking(false)
+          }, remainingDelay)
         })
-      }, 450)
+      }, 150)
     }
 
     return () => {
