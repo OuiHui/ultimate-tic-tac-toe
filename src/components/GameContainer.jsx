@@ -19,14 +19,13 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     unsubscribeFromGame,
   } = useSupabase()
 
-  const [myPlayer, setMyPlayer]               = useState(null)
+  const [myPlayer, setMyPlayer] = useState(null)
   const [supabaseChannel, setSupabaseChannel] = useState(null)
 
   // Hint state
-  const [hintMode,     setHintMode]     = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
-  const [hintMoves,    setHintMoves]    = useState([]) // Array of { boardIndex, cellIndex }
-  const [isHinting,    setIsHinting]    = useState(false)
-  const hintWorkerRef                   = useRef(null)
+  const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
+  const [hintMoves, setHintMoves] = useState([]) // Array of { boardIndex, cellIndex }
+  const [isHinting, setIsHinting] = useState(false)
 
   useEffect(() => {
     localStorage.setItem('ttt-hint-mode', hintMode)
@@ -98,21 +97,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     }
   }, [gameState, gameMode])
 
-  // Hint worker — created once
-  useEffect(() => {
-    try {
-      hintWorkerRef.current = new Worker(
-        new URL('../utils/botWorker.js', import.meta.url),
-        { type: 'module' }
-      )
-    } catch (_) {
-      hintWorkerRef.current = null
-    }
-    return () => {
-      hintWorkerRef.current?.terminate()
-      hintWorkerRef.current = null
-    }
-  }, [])
+
 
   // ── Online multiplayer setup ──────────────────────────────────────────────
   useEffect(() => {
@@ -220,27 +205,33 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     setIsHinting(true)
     const snapshot = { ...gameState }
 
-    if (hintWorkerRef.current) {
-      const worker = hintWorkerRef.current
-      const handler = (e) => {
-        worker.removeEventListener('message', handler)
-        setHintMoves(e.data.moves ?? [])
-        setIsHinting(false)
+    let worker = null
+    try {
+      worker = new Worker(new URL('../utils/botWorker.js', import.meta.url), { type: 'module' })
+      worker.onmessage = (e) => {
+        if (e.data.type === 'HINT') {
+          setHintMoves(e.data.moves ?? [])
+          setIsHinting(false)
+          worker.terminate()
+        }
       }
-      worker.addEventListener('message', handler)
       worker.postMessage({
         type: 'HINT',
         gameState: snapshot,
         difficulty: 'hard',
         botPlayer: playerColor,
       })
-    } else {
+    } catch (_) {
       // Fallback: synchronous (import dynamically to avoid top-level await)
       import('../utils/botEngine.js').then(({ getBestMoves }) => {
         const moves = getBestMoves(snapshot, 'hard', playerColor)
         setHintMoves(moves ?? [])
         setIsHinting(false)
       })
+    }
+
+    return () => {
+      if (worker) worker.terminate()
     }
   }, [hintMode, gameMode, gameState, playerColor, isThinking])
 
@@ -249,19 +240,19 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     gameState.gameOver && gameState.gameWinner !== 'tie'
       ? `${gameState.gameWinner.toLowerCase()}-winner`
       : gameState.gameOver && gameState.gameWinner === 'tie'
-      ? 'tie-winner'
-      : `${gameState.currentPlayer.toLowerCase()}-turn`
+        ? 'tie-winner'
+        : `${gameState.currentPlayer.toLowerCase()}-turn`
 
   const titleGlowClass =
     gameState.gameOver && gameState.gameWinner !== 'tie'
       ? `${gameState.gameWinner.toLowerCase()}-glow`
       : gameState.gameOver && gameState.gameWinner === 'tie'
-      ? ''
-      : `${gameState.currentPlayer.toLowerCase()}-glow`
+        ? ''
+        : `${gameState.currentPlayer.toLowerCase()}-glow`
 
   const isMyTurn =
     gameMode === 'local' ||
-    (gameMode === 'bot'    && !isThinking && gameState.currentPlayer === playerColor) ||
+    (gameMode === 'bot' && !isThinking && gameState.currentPlayer === playerColor) ||
     (gameMode === 'online' && myPlayer === gameState.currentPlayer)
 
   const showEvalBar = gameMode !== 'online'
@@ -351,14 +342,14 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
           {gameState.gameWinner === 'tie'
             ? 'Draw!'
             : gameMode === 'bot'
-            ? gameState.gameWinner === playerColor
-              ? 'You Win! 🎉'
-              : 'AI Wins!'
-            : gameMode === 'online' && myPlayer && myPlayer !== 'spectator'
-            ? gameState.gameWinner === myPlayer
-              ? 'You Win!'
-              : 'Opponent Wins!'
-            : `Player ${gameState.gameWinner} Wins!`}
+              ? gameState.gameWinner === playerColor
+                ? 'You Win! 🎉'
+                : 'AI Wins!'
+              : gameMode === 'online' && myPlayer && myPlayer !== 'spectator'
+                ? gameState.gameWinner === myPlayer
+                  ? 'You Win!'
+                  : 'Opponent Wins!'
+                : `Player ${gameState.gameWinner} Wins!`}
         </div>
       )}
     </div>

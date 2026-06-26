@@ -45,14 +45,14 @@ function evaluatePosition(gameState) {
   for (let i = 0; i < 9; i++) {
     const w = wonBoards[i]
     const wt = POSITION_WEIGHTS[i]
-    if (w === 'X')        score += 10 * wt
-    else if (w === 'O')   score -= 10 * wt
-    else if (!w)          score += scoreBoard(boards[i], 'X') * 0.3
+    if (w === 'X') score += 10 * wt
+    else if (w === 'O') score -= 10 * wt
+    else if (!w) score += scoreBoard(boards[i], 'X') * 0.3
   }
   for (let i = 0; i < 9; i++) {
     if (!wonBoards[i]) {
       for (let j = 0; j < 9; j++) {
-        if      (boards[i][j] === 'X') score += POSITION_WEIGHTS[j] * 0.05
+        if (boards[i][j] === 'X') score += POSITION_WEIGHTS[j] * 0.05
         else if (boards[i][j] === 'O') score -= POSITION_WEIGHTS[j] * 0.05
       }
     }
