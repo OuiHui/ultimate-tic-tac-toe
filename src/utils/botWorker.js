@@ -148,7 +148,7 @@ function minimax(state, depth, alpha, beta) {
   }
 }
 
-const DEPTHS = { easy: 1, medium: 3, hard: 5 }
+const DEPTHS = { easy: 1, medium: 3, hard: 8 }
 
 function getBotMove(gameState, difficulty, botPlayer) {
   const moves = getLegalMoves(gameState)
@@ -202,7 +202,7 @@ function getBestMoves(gameState, difficulty, botPlayer) {
 }
 
 function getBestMoveScore(gameState) {
-  return minimax(gameState, 5, -Infinity, Infinity)
+  return minimax(gameState, 8, -Infinity, Infinity)
 }
 
 // ── Message handler ───────────────────────────────────────────────────────────

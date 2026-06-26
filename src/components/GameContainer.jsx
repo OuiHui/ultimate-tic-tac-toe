@@ -231,18 +231,18 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       worker.postMessage({
         type: 'HINT',
         gameState: snapshot,
-        difficulty: botDifficulty,
+        difficulty: 'hard',
         botPlayer: playerColor,
       })
     } else {
       // Fallback: synchronous (import dynamically to avoid top-level await)
       import('../utils/botEngine.js').then(({ getBestMoves }) => {
-        const moves = getBestMoves(snapshot, botDifficulty, playerColor)
+        const moves = getBestMoves(snapshot, 'hard', playerColor)
         setHintMoves(moves ?? [])
         setIsHinting(false)
       })
     }
-  }, [hintMode, gameMode, gameState.currentPlayer, gameState.gameOver, playerColor, botDifficulty, isThinking])
+  }, [hintMode, gameMode, gameState, playerColor, isThinking])
 
   // ── Derived display values ────────────────────────────────────────────────
   const winnerClass =

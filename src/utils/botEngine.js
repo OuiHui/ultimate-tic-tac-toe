@@ -112,7 +112,7 @@ function minimax(state, depth, alpha, beta) {
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
-const DEPTHS = { easy: 1, medium: 3, hard: 5 }
+const DEPTHS = { easy: 1, medium: 3, hard: 8 }
 
 /**
  * Returns the best move for the bot.
@@ -196,11 +196,11 @@ export function getBestMoves(gameState, difficulty, botPlayer) {
 
 /**
  * Returns the evaluation score of the current state under the assumption
- * that both players play optimally (minimax search to depth 5).
+ * that both players play optimally (minimax search to depth 8).
  *
  * @param {object} gameState - current game state
  * @returns {number} score from X's perspective (-100 … +100)
  */
 export function getBestMoveScore(gameState) {
-  return minimax(gameState, 5, -Infinity, Infinity)
+  return minimax(gameState, 8, -Infinity, Infinity)
 }
