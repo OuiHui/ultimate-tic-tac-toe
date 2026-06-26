@@ -170,9 +170,52 @@ function getBotMove(gameState, difficulty, botPlayer) {
   return bestMove
 }
 
+function getBestMoves(gameState, difficulty, botPlayer) {
+  const moves = getLegalMoves(gameState)
+  if (!moves.length) return []
+  const depth = DEPTHS[difficulty] ?? 1
+  const botMaximizes = botPlayer === 'X'
+  let bestScore = botMaximizes ? -Infinity : Infinity
+  let bestMoves = []
+  for (const move of moves) {
+    const child = applyMove(gameState, move.boardIndex, move.cellIndex)
+    const score = depth <= 1
+      ? evaluatePosition(child)
+      : minimax(child, depth - 1, -Infinity, Infinity)
+    if (botMaximizes) {
+      if (score > bestScore) {
+        bestScore = score
+        bestMoves = [move]
+      } else if (score === bestScore) {
+        bestMoves.push(move)
+      }
+    } else {
+      if (score < bestScore) {
+        bestScore = score
+        bestMoves = [move]
+      } else if (score === bestScore) {
+        bestMoves.push(move)
+      }
+    }
+  }
+  return bestMoves
+}
+
+function getBestMoveScore(gameState) {
+  return minimax(gameState, 5, -Infinity, Infinity)
+}
+
 // ── Message handler ───────────────────────────────────────────────────────────
 self.onmessage = (e) => {
   const { type, gameState, difficulty, botPlayer } = e.data
-  const move = getBotMove(gameState, difficulty, botPlayer)
-  self.postMessage({ type, move })
+  if (type === 'HINT') {
+    const moves = getBestMoves(gameState, difficulty, botPlayer)
+    self.postMessage({ type, moves })
+  } else if (type === 'EVALUATE') {
+    const score = getBestMoveScore(gameState)
+    self.postMessage({ type, score })
+  } else {
+    const move = getBotMove(gameState, difficulty, botPlayer)
+    self.postMessage({ type, move })
+  }
 }

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import SmallBoard from './SmallBoard'
 
-function SuperBoard({ boards, wonBoards, activeBoard, gameOver, gameWinner, currentPlayer, onCellClick, isMyTurn, hintMove }) {
+function SuperBoard({ boards, wonBoards, activeBoard, gameOver, gameWinner, currentPlayer, onCellClick, isMyTurn, hintMoves = [] }) {
   const containerClass = useMemo(() => {
     if (gameOver) {
       if (gameWinner === 'tie') return 'super-board tie-winner'
@@ -12,23 +12,27 @@ function SuperBoard({ boards, wonBoards, activeBoard, gameOver, gameWinner, curr
 
   return (
     <div className={containerClass}>
-      {boards.map((board, boardIndex) => (
-        <SmallBoard
-          key={boardIndex}
-          boardIndex={boardIndex}
-          board={board}
-          isActive={
-            !gameOver &&
-            !wonBoards[boardIndex] &&
-            (activeBoard === null || activeBoard === boardIndex)
-          }
-          winner={wonBoards[boardIndex]}
-          onCellClick={onCellClick}
-          isMyTurn={isMyTurn}
-          currentPlayer={currentPlayer}
-          hintCellIndex={hintMove?.boardIndex === boardIndex ? hintMove.cellIndex : undefined}
-        />
-      ))}
+      {boards.map((board, boardIndex) => {
+        const boardHintMoves = hintMoves.filter(m => m.boardIndex === boardIndex)
+        const hintCellIndices = boardHintMoves.map(m => m.cellIndex)
+        return (
+          <SmallBoard
+            key={boardIndex}
+            boardIndex={boardIndex}
+            board={board}
+            isActive={
+              !gameOver &&
+              !wonBoards[boardIndex] &&
+              (activeBoard === null || activeBoard === boardIndex)
+            }
+            winner={wonBoards[boardIndex]}
+            onCellClick={onCellClick}
+            isMyTurn={isMyTurn}
+            currentPlayer={currentPlayer}
+            hintCellIndices={hintCellIndices}
+          />
+        )
+      })}
     </div>
   )
 }

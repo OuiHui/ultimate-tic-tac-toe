@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import Cell from './Cell'
 
-function SmallBoard({ boardIndex, board, isActive, winner, onCellClick, isMyTurn, currentPlayer, hintCellIndex }) {
+function SmallBoard({ boardIndex, board, isActive, winner, onCellClick, isMyTurn, currentPlayer, hintCellIndices = [] }) {
   const boardClasses = useMemo(() => {
     const classes = ['small-board']
     if (isActive) {
@@ -31,7 +31,7 @@ function SmallBoard({ boardIndex, board, isActive, winner, onCellClick, isMyTurn
             onClick={() => handleClick(cellIndex)}
             disabled={!isActive || winner || cell || !isMyTurn}
             currentPlayer={currentPlayer}
-            isHint={hintCellIndex === cellIndex}
+            isHint={hintCellIndices.includes(cellIndex)}
           />
         ))}
       </div>

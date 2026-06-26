@@ -23,9 +23,14 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   const [supabaseChannel, setSupabaseChannel] = useState(null)
 
   // Hint state
-  const [hintMove,     setHintMove]     = useState(null) // { boardIndex, cellIndex } | null
+  const [hintMode,     setHintMode]     = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
+  const [hintMoves,    setHintMoves]    = useState([]) // Array of { boardIndex, cellIndex }
   const [isHinting,    setIsHinting]    = useState(false)
   const hintWorkerRef                   = useRef(null)
+
+  useEffect(() => {
+    localStorage.setItem('ttt-hint-mode', hintMode)
+  }, [hintMode])
 
   // 'local' and 'bot' both use local timer management; 'online' does not
   const { gameState, makeMove, resetGame, undoMove, canUndo, setGameState } =
@@ -42,10 +47,56 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     makeMove,
   )
 
-  const evalScore = useMemo(() => {
-    if (gameState.gameOver) return evaluatePosition(gameState)
-    return getBestMoveScore(gameState)
-  }, [gameState])
+  const [evalScore, setEvalScore] = useState(0)
+  const evalWorkerRef = useRef(null)
+
+  // Evaluation worker — created once
+  useEffect(() => {
+    try {
+      evalWorkerRef.current = new Worker(
+        new URL('../utils/botWorker.js', import.meta.url),
+        { type: 'module' }
+      )
+    } catch (_) {
+      evalWorkerRef.current = null
+    }
+    return () => {
+      evalWorkerRef.current?.terminate()
+      evalWorkerRef.current = null
+    }
+  }, [])
+
+  // Asynchronous evaluation effect
+  useEffect(() => {
+    if (gameMode === 'online') return
+    if (gameState.gameOver) {
+      setEvalScore(evaluatePosition(gameState))
+      return
+    }
+
+    const snapshot = { ...gameState }
+
+    if (evalWorkerRef.current) {
+      const worker = evalWorkerRef.current
+      const handler = (e) => {
+        if (e.data.type === 'EVALUATE') {
+          worker.removeEventListener('message', handler)
+          setEvalScore(e.data.score ?? 0)
+        }
+      }
+      worker.addEventListener('message', handler)
+      worker.postMessage({
+        type: 'EVALUATE',
+        gameState: snapshot,
+      })
+    } else {
+      // Fallback: synchronous
+      import('../utils/botEngine.js').then(({ getBestMoveScore }) => {
+        const score = getBestMoveScore(snapshot)
+        setEvalScore(score)
+      })
+    }
+  }, [gameState, gameMode])
 
   // Hint worker — created once
   useEffect(() => {
@@ -120,12 +171,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       makeMove(boardIndex, cellIndex)
     }
     // Clear hint when a move is made
-    setHintMove(null)
+    setHintMoves([])
   }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase])
 
   const handleReset = async () => {
     cancelThink()
-    setHintMove(null)
+    setHintMoves([])
     if (gameMode === 'online' && supabase) {
       const newState = resetGame()
       try { await supabase.from('games').update({ state: newState }).eq('code', gameCode) }
@@ -144,24 +195,36 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   // ── Undo ──────────────────────────────────────────────────────────────────
   const handleUndo = useCallback(() => {
     cancelThink()
-    setHintMove(null)
+    setHintMoves([])
     undoMove(2) // undo human + bot response
   }, [cancelThink, undoMove])
 
-  // ── Hint ──────────────────────────────────────────────────────────────────
-  const handleHint = useCallback(() => {
-    if (isHinting || isThinking) return
-    if (gameState.gameOver || gameState.currentPlayer !== playerColor) return
+  // ── Hint Mode Effect ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!hintMode) {
+      setHintMoves([])
+      return
+    }
+    if (gameMode !== 'bot') return
+    if (gameState.gameOver) {
+      setHintMoves([])
+      return
+    }
+    // Only show hints on human player's turn
+    if (gameState.currentPlayer !== playerColor) {
+      setHintMoves([])
+      return
+    }
+    if (isThinking) return
 
     setIsHinting(true)
-
     const snapshot = { ...gameState }
 
     if (hintWorkerRef.current) {
       const worker = hintWorkerRef.current
       const handler = (e) => {
         worker.removeEventListener('message', handler)
-        setHintMove(e.data.move ?? null)
+        setHintMoves(e.data.moves ?? [])
         setIsHinting(false)
       }
       worker.addEventListener('message', handler)
@@ -169,17 +232,17 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
         type: 'HINT',
         gameState: snapshot,
         difficulty: botDifficulty,
-        botPlayer: playerColor, // compute best move for the human player
+        botPlayer: playerColor,
       })
     } else {
       // Fallback: synchronous (import dynamically to avoid top-level await)
-      import('../utils/botEngine.js').then(({ getBotMove }) => {
-        const move = getBotMove(snapshot, botDifficulty, playerColor)
-        setHintMove(move ?? null)
+      import('../utils/botEngine.js').then(({ getBestMoves }) => {
+        const moves = getBestMoves(snapshot, botDifficulty, playerColor)
+        setHintMoves(moves ?? [])
         setIsHinting(false)
       })
     }
-  }, [isHinting, isThinking, gameState, playerColor, botDifficulty])
+  }, [hintMode, gameMode, gameState.currentPlayer, gameState.gameOver, playerColor, botDifficulty, isThinking])
 
   // ── Derived display values ────────────────────────────────────────────────
   const winnerClass =
@@ -205,9 +268,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   // Can undo = bot mode + at least 2 half-moves in history + not currently thinking
   const showUndo = gameMode === 'bot' && canUndo() && !isThinking && !gameState.gameOver
-
-  // Show hint button during human's turn in bot mode
-  const showHint = gameMode === 'bot' && isMyTurn && !gameState.gameOver
 
   return (
     <div className={`game-container ${winnerClass}`}>
@@ -244,7 +304,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
           currentPlayer={gameState.currentPlayer}
           onCellClick={handleMove}
           isMyTurn={isMyTurn}
-          hintMove={hintMove}
+          hintMoves={hintMoves}
         />
       </div>
 
@@ -260,15 +320,18 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
       {/* Action buttons */}
       <div className="action-buttons">
-        {showHint && (
-          <button
-            className="button button-hint"
-            onClick={handleHint}
-            disabled={isHinting}
-            title="Show best move"
-          >
-            {isHinting ? '…' : '💡 Hint'}
-          </button>
+        {gameMode === 'bot' && !gameState.gameOver && (
+          <div className="hint-mode-container">
+            <span className="hint-mode-label">💡 Hint Mode</span>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={hintMode}
+                onChange={(e) => setHintMode(e.target.checked)}
+              />
+              <span className="slider" />
+            </label>
+          </div>
         )}
         {showUndo && (
           <button className="button button-undo" onClick={handleUndo} title="Undo last move">

@@ -150,27 +150,57 @@ export function getBotMove(gameState, difficulty, botPlayer) {
 }
 
 /**
- * Returns the evaluation score that would result from the current player
- * playing their single best immediate move (1-ply lookahead).
- * Falls back to evaluatePosition if there are no legal moves.
+ * Returns all moves sharing the best evaluation score.
+ *
+ * @param {object} gameState - current game state
+ * @param {'easy'|'medium'|'hard'} difficulty
+ * @param {'X'|'O'} botPlayer - player to optimize for
+ * @returns {Array<{boardIndex: number, cellIndex: number}>}
+ */
+export function getBestMoves(gameState, difficulty, botPlayer) {
+  const moves = getLegalMoves(gameState)
+  if (!moves.length) return []
+
+  const depth = DEPTHS[difficulty] ?? 1
+  const botMaximizes = botPlayer === 'X'
+
+  let bestScore = botMaximizes ? -Infinity : Infinity
+  let bestMoves = []
+
+  for (const move of moves) {
+    const child = applyMove(gameState, move.boardIndex, move.cellIndex)
+    const score =
+      depth <= 1
+        ? evaluatePosition(child)
+        : minimax(child, depth - 1, -Infinity, Infinity)
+
+    if (botMaximizes) {
+      if (score > bestScore) {
+        bestScore = score
+        bestMoves = [move]
+      } else if (score === bestScore) {
+        bestMoves.push(move)
+      }
+    } else {
+      if (score < bestScore) {
+        bestScore = score
+        bestMoves = [move]
+      } else if (score === bestScore) {
+        bestMoves.push(move)
+      }
+    }
+  }
+
+  return bestMoves
+}
+
+/**
+ * Returns the evaluation score of the current state under the assumption
+ * that both players play optimally (minimax search to depth 5).
  *
  * @param {object} gameState - current game state
  * @returns {number} score from X's perspective (-100 … +100)
  */
 export function getBestMoveScore(gameState) {
-  const moves = getLegalMoves(gameState)
-  if (!moves.length) return evaluatePosition(gameState)
-
-  const maximizing = gameState.currentPlayer === 'X'
-  let bestScore = maximizing ? -Infinity : Infinity
-
-  for (const { boardIndex, cellIndex } of moves) {
-    const child = applyMove(gameState, boardIndex, cellIndex)
-    const score = evaluatePosition(child)
-    if (maximizing ? score > bestScore : score < bestScore) {
-      bestScore = score
-    }
-  }
-
-  return bestScore
+  return minimax(gameState, 5, -Infinity, Infinity)
 }
