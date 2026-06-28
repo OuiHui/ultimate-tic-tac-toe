@@ -30,12 +30,12 @@ function scoreBoard(cells, player) {
  * Evaluate the full game state from X's perspective.
  * Clamped to (-99, +99); terminal states return ±100 or 0.
  */
-export function evaluatePosition(gameState) {
+export function evaluatePosition(gameState, depth = 0) {
   const { boards, wonBoards, gameOver, gameWinner } = gameState
 
   if (gameOver) {
-    if (gameWinner === 'X') return 100
-    if (gameWinner === 'O') return -100
+    if (gameWinner === 'X') return 100 + depth
+    if (gameWinner === 'O') return -100 - depth
     return 0
   }
 

@@ -81,10 +81,10 @@ function applyMove(state, boardIndex, cellIndex) {
 // ─── Minimax with alpha-beta pruning ─────────────────────────────────────────
 // isMaximizing is derived from state.currentPlayer so we don't need to pass it.
 function minimax(state, depth, alpha, beta) {
-  if (state.gameOver || depth === 0) return evaluatePosition(state)
+  if (state.gameOver || depth === 0) return evaluatePosition(state, depth)
 
   const moves = getLegalMoves(state)
-  if (!moves.length) return evaluatePosition(state)
+  if (!moves.length) return evaluatePosition(state, depth)
 
   const maximizing = state.currentPlayer === 'X'
 
@@ -137,7 +137,7 @@ export function getBotMove(gameState, difficulty, botPlayer) {
     // depth=1 → evaluate the child directly (greedy / best-immediate-move)
     const score =
       depth <= 1
-        ? evaluatePosition(child)
+        ? evaluatePosition(child, depth)
         : minimax(child, depth - 1, -Infinity, Infinity)
 
     if (botMaximizes ? score > bestScore : score < bestScore) {
@@ -171,7 +171,7 @@ export function getBestMoves(gameState, difficulty, botPlayer) {
     const child = applyMove(gameState, move.boardIndex, move.cellIndex)
     const score =
       depth <= 1
-        ? evaluatePosition(child)
+        ? evaluatePosition(child, depth)
         : minimax(child, depth - 1, -Infinity, Infinity)
 
     if (botMaximizes) {

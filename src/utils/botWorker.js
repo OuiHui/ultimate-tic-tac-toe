@@ -32,11 +32,11 @@ function scoreBoard(cells, player) {
   return score
 }
 
-function evaluatePosition(gameState) {
+function evaluatePosition(gameState, depth = 0) {
   const { boards, wonBoards, gameOver, gameWinner } = gameState
   if (gameOver) {
-    if (gameWinner === 'X') return 100
-    if (gameWinner === 'O') return -100
+    if (gameWinner === 'X') return 100 + depth
+    if (gameWinner === 'O') return -100 - depth
     return 0
   }
   let score = 0
@@ -123,9 +123,9 @@ function applyMove(state, boardIndex, cellIndex) {
 }
 
 function minimax(state, depth, alpha, beta) {
-  if (state.gameOver || depth === 0) return evaluatePosition(state)
+  if (state.gameOver || depth === 0) return evaluatePosition(state, depth)
   const moves = getLegalMoves(state)
-  if (!moves.length) return evaluatePosition(state)
+  if (!moves.length) return evaluatePosition(state, depth)
   const maximizing = state.currentPlayer === 'X'
   if (maximizing) {
     let best = -Infinity
@@ -160,7 +160,7 @@ function getBotMove(gameState, difficulty, botPlayer) {
   for (const move of moves) {
     const child = applyMove(gameState, move.boardIndex, move.cellIndex)
     const score = depth <= 1
-      ? evaluatePosition(child)
+      ? evaluatePosition(child, depth)
       : minimax(child, depth - 1, -Infinity, Infinity)
     if (botMaximizes ? score > bestScore : score < bestScore) {
       bestScore = score
@@ -180,7 +180,7 @@ function getBestMoves(gameState, difficulty, botPlayer) {
   for (const move of moves) {
     const child = applyMove(gameState, move.boardIndex, move.cellIndex)
     const score = depth <= 1
-      ? evaluatePosition(child)
+      ? evaluatePosition(child, depth)
       : minimax(child, depth - 1, -Infinity, Infinity)
     if (botMaximizes) {
       if (score > bestScore) {
