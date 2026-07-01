@@ -202,7 +202,27 @@ function getBestMoves(gameState, difficulty, botPlayer) {
 }
 
 function getBestMoveScore(gameState) {
-  return minimax(gameState, 8, -Infinity, Infinity)
+  let depth = 1
+  let bestScore = 0
+  const startTime = Date.now()
+  const TIME_LIMIT = 4500 // 4.5 seconds time budget (safe as it runs in background worker)
+  
+  while (depth <= 14) {
+    const elapsed = Date.now() - startTime
+    if (elapsed > TIME_LIMIT && depth > 6) {
+      break
+    }
+    
+    const score = minimax(gameState, depth, -Infinity, Infinity)
+    bestScore = score
+    
+    // Break early if a forced win or loss is detected
+    if (Math.abs(bestScore) >= 100) {
+      break
+    }
+    depth++
+  }
+  return bestScore
 }
 
 // ── Message handler ───────────────────────────────────────────────────────────

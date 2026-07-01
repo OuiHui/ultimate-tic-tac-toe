@@ -196,11 +196,32 @@ export function getBestMoves(gameState, difficulty, botPlayer) {
 
 /**
  * Returns the evaluation score of the current state under the assumption
- * that both players play optimally (minimax search to depth 8).
+ * that both players play optimally. Uses iterative deepening search (up to depth 12)
+ * with a time budget of 150ms to ensure UI responsiveness if running synchronously.
  *
  * @param {object} gameState - current game state
  * @returns {number} score from X's perspective (-100 … +100)
  */
 export function getBestMoveScore(gameState) {
-  return minimax(gameState, 8, -Infinity, Infinity)
+  let depth = 1
+  let bestScore = 0
+  const startTime = Date.now()
+  const TIME_LIMIT = 150 // ms time budget (keeps UI smooth if worker fallback is triggered)
+  
+  while (depth <= 12) {
+    const elapsed = Date.now() - startTime
+    if (elapsed > TIME_LIMIT && depth > 6) {
+      break
+    }
+    
+    const score = minimax(gameState, depth, -Infinity, Infinity)
+    bestScore = score
+    
+    // Break early if a forced win or loss is detected
+    if (Math.abs(bestScore) >= 100) {
+      break
+    }
+    depth++
+  }
+  return bestScore
 }

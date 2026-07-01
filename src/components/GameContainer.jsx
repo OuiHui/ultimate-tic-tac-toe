@@ -74,12 +74,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     }
 
     const snapshot = { ...gameState }
+    let active = true
 
     if (evalWorkerRef.current) {
       const worker = evalWorkerRef.current
       const handler = (e) => {
-        if (e.data.type === 'EVALUATE') {
-          worker.removeEventListener('message', handler)
+        if (e.data.type === 'EVALUATE' && active) {
           setEvalScore(e.data.score ?? 0)
         }
       }
@@ -88,11 +88,28 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
         type: 'EVALUATE',
         gameState: snapshot,
       })
+
+      return () => {
+        active = false
+        worker.removeEventListener('message', handler)
+        // Abort the background search thread immediately to keep the CPU free
+        worker.terminate()
+        try {
+          evalWorkerRef.current = new Worker(
+            new URL('../utils/botWorker.js', import.meta.url),
+            { type: 'module' }
+          )
+        } catch (_) {
+          evalWorkerRef.current = null
+        }
+      }
     } else {
       // Fallback: synchronous
       import('../utils/botEngine.js').then(({ getBestMoveScore }) => {
-        const score = getBestMoveScore(snapshot)
-        setEvalScore(score)
+        if (active) {
+          const score = getBestMoveScore(snapshot)
+          setEvalScore(score)
+        }
       })
     }
   }, [gameState, gameMode])
