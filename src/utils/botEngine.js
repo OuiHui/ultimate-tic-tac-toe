@@ -78,50 +78,112 @@ function applyMove(state, boardIndex, cellIndex) {
   }
 }
 
-// ─── Minimax with alpha-beta pruning ─────────────────────────────────────────
-// isMaximizing is derived from state.currentPlayer so we don't need to pass it.
+// ─── Transposition Table & Search Optimization ────────────────────────────────
+const EXACT = 0
+const LOWERBOUND = 1
+const UPPERBOUND = 2
+const transpositionTable = new Map()
+
+function getGameStateKey(state) {
+  let boardStr = ''
+  for (let bi = 0; bi < 9; bi++) {
+    for (let ci = 0; ci < 9; ci++) {
+      const cell = state.boards[bi][ci]
+      boardStr += cell === 'X' ? 'X' : cell === 'O' ? 'O' : '.'
+    }
+  }
+  const activeStr = state.activeBoard === null ? 'N' : state.activeBoard
+  return `${boardStr}|${state.currentPlayer}|${activeStr}`
+}
+
 function minimax(state, depth, alpha, beta) {
+  const originalAlpha = alpha
+  const key = getGameStateKey(state)
+
+  if (transpositionTable.has(key)) {
+    const entry = transpositionTable.get(key)
+    if (entry.depth >= depth) {
+      if (entry.flag === EXACT) {
+        return entry.score
+      } else if (entry.flag === LOWERBOUND) {
+        alpha = Math.max(alpha, entry.score)
+      } else if (entry.flag === UPPERBOUND) {
+        beta = Math.min(beta, entry.score)
+      }
+      if (alpha >= beta) {
+        return entry.score
+      }
+    }
+  }
+
   if (state.gameOver || depth === 0) return evaluatePosition(state, depth)
 
   const moves = getLegalMoves(state)
   if (!moves.length) return evaluatePosition(state, depth)
 
+  let cachedBestMove = null
+  if (transpositionTable.has(key)) {
+    cachedBestMove = transpositionTable.get(key).bestMove
+  }
+
+  if (cachedBestMove) {
+    moves.sort((a, b) => {
+      const aIsBest = a.boardIndex === cachedBestMove.boardIndex && a.cellIndex === cachedBestMove.cellIndex
+      const bIsBest = b.boardIndex === cachedBestMove.boardIndex && b.cellIndex === cachedBestMove.cellIndex
+      return bIsBest - aIsBest
+    })
+  }
+
   const maximizing = state.currentPlayer === 'X'
+  let bestVal = maximizing ? -Infinity : Infinity
+  let bestMove = null
 
   if (maximizing) {
-    let best = -Infinity
-    for (const { boardIndex, cellIndex } of moves) {
-      const child = applyMove(state, boardIndex, cellIndex)
+    for (const move of moves) {
+      const child = applyMove(state, move.boardIndex, move.cellIndex)
       const val = minimax(child, depth - 1, alpha, beta)
-      if (val > best) best = val
-      if (val > alpha) alpha = val
-      if (beta <= alpha) break // β cut-off
+      if (val > bestVal) {
+        bestVal = val
+        bestMove = move
+      }
+      alpha = Math.max(alpha, bestVal)
+      if (beta <= alpha) break
     }
-    return best
   } else {
-    let best = Infinity
-    for (const { boardIndex, cellIndex } of moves) {
-      const child = applyMove(state, boardIndex, cellIndex)
+    for (const move of moves) {
+      const child = applyMove(state, move.boardIndex, move.cellIndex)
       const val = minimax(child, depth - 1, alpha, beta)
-      if (val < best) best = val
-      if (val < beta) beta = val
-      if (beta <= alpha) break // α cut-off
+      if (val < bestVal) {
+        bestVal = val
+        bestMove = move
+      }
+      beta = Math.min(beta, bestVal)
+      if (beta <= alpha) break
     }
-    return best
   }
+
+  let flag = EXACT
+  if (bestVal <= originalAlpha) {
+    flag = UPPERBOUND
+  } else if (bestVal >= beta) {
+    flag = LOWERBOUND
+  }
+
+  transpositionTable.set(key, {
+    depth,
+    score: bestVal,
+    flag,
+    bestMove
+  })
+
+  return bestVal
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 const DEPTHS = { easy: 1, medium: 3, hard: 8 }
 
-/**
- * Returns the best move for the bot.
- * @param {object} gameState  - current game state from the React hook
- * @param {'easy'|'medium'|'hard'} difficulty
- * @param {'X'|'O'} botPlayer - which colour the bot plays
- * @returns {{ boardIndex: number, cellIndex: number } | null}
- */
 export function getBotMove(gameState, difficulty, botPlayer) {
+  transpositionTable.clear()
   const moves = getLegalMoves(gameState)
   if (!moves.length) return null
 
@@ -133,8 +195,6 @@ export function getBotMove(gameState, difficulty, botPlayer) {
 
   for (const move of moves) {
     const child = applyMove(gameState, move.boardIndex, move.cellIndex)
-
-    // depth=1 → evaluate the child directly (greedy / best-immediate-move)
     const score =
       depth <= 1
         ? evaluatePosition(child, depth)
@@ -149,15 +209,8 @@ export function getBotMove(gameState, difficulty, botPlayer) {
   return bestMove
 }
 
-/**
- * Returns all moves sharing the best evaluation score.
- *
- * @param {object} gameState - current game state
- * @param {'easy'|'medium'|'hard'} difficulty
- * @param {'X'|'O'} botPlayer - player to optimize for
- * @returns {Array<{boardIndex: number, cellIndex: number}>}
- */
 export function getBestMoves(gameState, difficulty, botPlayer) {
+  transpositionTable.clear()
   const moves = getLegalMoves(gameState)
   if (!moves.length) return []
 
@@ -194,19 +247,12 @@ export function getBestMoves(gameState, difficulty, botPlayer) {
   return bestMoves
 }
 
-/**
- * Returns the evaluation score of the current state under the assumption
- * that both players play optimally. Uses iterative deepening search (up to depth 12)
- * with a time budget of 150ms to ensure UI responsiveness if running synchronously.
- *
- * @param {object} gameState - current game state
- * @returns {number} score from X's perspective (-100 … +100)
- */
 export function getBestMoveScore(gameState) {
+  transpositionTable.clear()
   let depth = 1
   let bestScore = 0
   const startTime = Date.now()
-  const TIME_LIMIT = 150 // ms time budget (keeps UI smooth if worker fallback is triggered)
+  const TIME_LIMIT = 150
   
   while (depth <= 12) {
     const elapsed = Date.now() - startTime
@@ -217,7 +263,6 @@ export function getBestMoveScore(gameState) {
     const score = minimax(gameState, depth, -Infinity, Infinity)
     bestScore = score
     
-    // Break early if a forced win or loss is detected
     if (Math.abs(bestScore) >= 100) {
       break
     }
