@@ -147,3 +147,28 @@
   100% { opacity: 0.7; }
 }
 
+/* ── History inspection highlights ── */
+.cell.played-cell {
+  border-color: rgba(0, 200, 255, 0.7) !important;
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.4), inset 0 0 10px rgba(0, 200, 255, 0.1) !important;
+  animation: playedPulse 1.5s ease-in-out infinite alternate;
+}
+
+.cell.best-move-cell {
+  border-color: rgba(0, 230, 150, 0.8) !important;
+  background: rgba(0, 230, 150, 0.08) !important;
+  box-shadow: 0 0 12px rgba(0, 230, 150, 0.4), inset 0 0 10px rgba(0, 230, 150, 0.1) !important;
+  animation: bestMovePulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes playedPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.02); }
+}
+
+@keyframes bestMovePulse {
+  0% { transform: scale(1); border-color: rgba(0, 230, 150, 0.6); }
+  100% { transform: scale(1.03); border-color: rgba(0, 230, 150, 0.95); }
+}
+
+

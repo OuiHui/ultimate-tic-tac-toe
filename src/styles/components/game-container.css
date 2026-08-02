@@ -1,5 +1,23 @@
 /* Game Container Styles */
 
+.game-screen-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 1rem auto;
+}
+
+@media (max-width: 950px) {
+  .game-screen-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
 .game-container {
   background: rgba(5, 5, 15, 0.98);
   border: 2px solid rgba(0, 200, 255, 0.35);
@@ -10,8 +28,9 @@
     0 12px 40px rgba(0, 0, 0, 0.9);
   padding: 1.5rem;
   text-align: center;
+  flex: 1;
   max-width: 800px;
-  margin: 1rem auto;
+  width: 100%;
   backdrop-filter: blur(25px);
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

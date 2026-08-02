@@ -1,16 +1,17 @@
-import { useState, useEffect, useRef, useCallback, Suspense, lazy, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react'
 import SuperBoard from './SuperBoard'
 import GameStatus from './GameStatus'
 import Timer from './Timer'
 import EvalBar from './EvalBar'
+import MoveHistory from './MoveHistory'
 const RulesLazy = lazy(() => import('./Rules'))
 import { useSupabase } from '../contexts/SupabaseContext'
 import { useSuperTicTacToe } from '../hooks/useSuperTicTacToe'
 import { useBot } from '../hooks/useBot'
 import { evaluatePosition } from '../utils/evaluator'
-import { getBestMoveScore } from '../utils/botEngine'
 
 function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, playerColor, playerXTime, playerOTime }) {
+  // ── 1. Custom Context & Game Hooks ─────────────────────────────────────────
   const {
     supabase,
     joinRoom,
@@ -19,23 +20,25 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     unsubscribeFromGame,
   } = useSupabase()
 
-  const [myPlayer, setMyPlayer] = useState(null)
-  const [supabaseChannel, setSupabaseChannel] = useState(null)
+  const {
+    gameState,
+    displayedState,
+    moveHistory,
+    viewingIndex,
+    isBrowsingHistory,
+    makeMove,
+    resetGame,
+    undoMove,
+    canUndo,
+    setGameState,
+    stepTo,
+    stepForward,
+    stepBackward,
+    stepToStart,
+    stepToLive,
+    branchFrom,
+  } = useSuperTicTacToe(gameMode !== 'online', playerXTime, playerOTime)
 
-  // Hint state
-  const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
-  const [hintMoves, setHintMoves] = useState([]) // Array of { boardIndex, cellIndex }
-  const [isHinting, setIsHinting] = useState(false)
-
-  useEffect(() => {
-    localStorage.setItem('ttt-hint-mode', hintMode)
-  }, [hintMode])
-
-  // 'local' and 'bot' both use local timer management; 'online' does not
-  const { gameState, makeMove, resetGame, undoMove, canUndo, setGameState } =
-    useSuperTicTacToe(gameMode !== 'online', playerXTime, playerOTime)
-
-  // Bot plays the opposite colour of the human player
   const botPlayer = playerColor === 'X' ? 'O' : 'X'
 
   const { isThinking, cancelThink } = useBot(
@@ -46,10 +49,64 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     makeMove,
   )
 
+  // ── 2. Local State Hooks ───────────────────────────────────────────────────
+  const [myPlayer, setMyPlayer] = useState(null)
+  const [supabaseChannel, setSupabaseChannel] = useState(null)
+  const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
+  const [hintMoves, setHintMoves] = useState([])
+  const [isHinting, setIsHinting] = useState(false)
   const [evalScore, setEvalScore] = useState(0)
+
+  // ── 3. Refs ────────────────────────────────────────────────────────────────
   const evalWorkerRef = useRef(null)
 
-  // Evaluation worker — created once
+  // ── 4. Callbacks ───────────────────────────────────────────────────────────
+  const handleMove = useCallback(async (boardIndex, cellIndex) => {
+    if (gameMode === 'online') {
+      if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
+      if (gameState.wonBoards[boardIndex] || gameState.boards[boardIndex][cellIndex]) return
+      if (gameState.activeBoard !== null && gameState.activeBoard !== boardIndex) return
+      const newState = makeMove(boardIndex, cellIndex)
+      if (newState && supabase) {
+        try { await makeMoveSupabase(supabase, gameCode, newState, myPlayer) }
+        catch (err) { console.error('Error syncing move:', err) }
+      }
+    } else {
+      makeMove(boardIndex, cellIndex)
+    }
+    setHintMoves([])
+  }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase])
+
+  const handleReset = useCallback(async () => {
+    cancelThink()
+    setHintMoves([])
+    if (gameMode === 'online' && supabase) {
+      const newState = resetGame()
+      try { await supabase.from('games').update({ state: newState }).eq('code', gameCode) }
+      catch (err) { console.error('Error resetting game:', err) }
+    } else {
+      resetGame()
+    }
+  }, [cancelThink, gameMode, supabase, gameCode, resetGame])
+
+  const handleBackToMenu = useCallback(() => {
+    cancelThink()
+    if (supabaseChannel) unsubscribeFromGame(supabaseChannel)
+    onBackToMenu()
+  }, [cancelThink, supabaseChannel, unsubscribeFromGame, onBackToMenu])
+
+  const handleUndo = useCallback(() => {
+    cancelThink()
+    setHintMoves([])
+    undoMove(2)
+  }, [cancelThink, undoMove])
+
+  // ── 5. Effects ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    localStorage.setItem('ttt-hint-mode', hintMode)
+  }, [hintMode])
+
+  // Worker initialization
   useEffect(() => {
     try {
       evalWorkerRef.current = new Worker(
@@ -65,15 +122,15 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     }
   }, [])
 
-  // Asynchronous evaluation effect
+  // Asynchronous evaluation effect for displayed state
   useEffect(() => {
     if (gameMode === 'online') return
-    if (gameState.gameOver) {
-      setEvalScore(evaluatePosition(gameState))
+    if (displayedState.gameOver) {
+      setEvalScore(evaluatePosition(displayedState))
       return
     }
 
-    const snapshot = { ...gameState }
+    const snapshot = { ...displayedState }
     let active = true
 
     if (evalWorkerRef.current) {
@@ -92,7 +149,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       return () => {
         active = false
         worker.removeEventListener('message', handler)
-        // Abort the background search thread immediately to keep the CPU free
         worker.terminate()
         try {
           evalWorkerRef.current = new Worker(
@@ -104,7 +160,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
         }
       }
     } else {
-      // Fallback: synchronous
       import('../utils/botEngine.js').then(({ getBestMoveScore }) => {
         if (active) {
           const score = getBestMoveScore(snapshot)
@@ -112,11 +167,9 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
         }
       })
     }
-  }, [gameState, gameMode])
+  }, [displayedState, gameMode])
 
-
-
-  // ── Online multiplayer setup ──────────────────────────────────────────────
+  // Online multiplayer setup
   useEffect(() => {
     if (gameMode === 'online' && supabase && gameCode) {
       setupMultiplayer()
@@ -158,69 +211,25 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     }
   }
 
-  // ── Move handlers ─────────────────────────────────────────────────────────
-  const handleMove = useCallback(async (boardIndex, cellIndex) => {
-    if (gameMode === 'online') {
-      if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
-      if (gameState.wonBoards[boardIndex] || gameState.boards[boardIndex][cellIndex]) return
-      if (gameState.activeBoard !== null && gameState.activeBoard !== boardIndex) return
-      const newState = makeMove(boardIndex, cellIndex)
-      if (newState && supabase) {
-        try { await makeMoveSupabase(supabase, gameCode, newState, myPlayer) }
-        catch (err) { console.error('Error syncing move:', err) }
-      }
-    } else {
-      makeMove(boardIndex, cellIndex)
-    }
-    // Clear hint when a move is made
-    setHintMoves([])
-  }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase])
-
-  const handleReset = async () => {
-    cancelThink()
-    setHintMoves([])
-    if (gameMode === 'online' && supabase) {
-      const newState = resetGame()
-      try { await supabase.from('games').update({ state: newState }).eq('code', gameCode) }
-      catch (err) { console.error('Error resetting game:', err) }
-    } else {
-      resetGame()
-    }
-  }
-
-  const handleBackToMenu = () => {
-    cancelThink()
-    if (supabaseChannel) unsubscribeFromGame(supabaseChannel)
-    onBackToMenu()
-  }
-
-  // ── Undo ──────────────────────────────────────────────────────────────────
-  const handleUndo = useCallback(() => {
-    cancelThink()
-    setHintMoves([])
-    undoMove(2) // undo human + bot response
-  }, [cancelThink, undoMove])
-
-  // ── Hint Mode Effect ──────────────────────────────────────────────────────
+  // Hint Mode Effect
   useEffect(() => {
     if (!hintMode) {
       setHintMoves([])
       return
     }
     if (gameMode !== 'bot') return
-    if (gameState.gameOver) {
+    if (displayedState.gameOver) {
       setHintMoves([])
       return
     }
-    // Only show hints on human player's turn
-    if (gameState.currentPlayer !== playerColor) {
+    if (displayedState.currentPlayer !== playerColor) {
       setHintMoves([])
       return
     }
     if (isThinking) return
 
     setIsHinting(true)
-    const snapshot = { ...gameState }
+    const snapshot = { ...displayedState }
 
     let worker = null
     try {
@@ -239,7 +248,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
         botPlayer: playerColor,
       })
     } catch (_) {
-      // Fallback: synchronous (import dynamically to avoid top-level await)
       import('../utils/botEngine.js').then(({ getBestMoves }) => {
         const moves = getBestMoves(snapshot, 'hard', playerColor)
         setHintMoves(moves ?? [])
@@ -250,22 +258,35 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     return () => {
       if (worker) worker.terminate()
     }
-  }, [hintMode, gameMode, gameState, playerColor, isThinking])
+  }, [hintMode, gameMode, displayedState, playerColor, isThinking])
+
+  // ── Highlights for selected historical move ──────────────────────────────
+  const selectedHistoryEntry = viewingIndex !== null && viewingIndex < moveHistory.length
+    ? moveHistory[viewingIndex]
+    : null
+
+  const playedMove = selectedHistoryEntry
+    ? { boardIndex: selectedHistoryEntry.boardIndex, cellIndex: selectedHistoryEntry.cellIndex }
+    : null
+
+  const recommendedMove = selectedHistoryEntry?.analysis?.isBlunder || selectedHistoryEntry?.analysis?.classification === 'MISTAKE'
+    ? selectedHistoryEntry.analysis.bestMove
+    : null
 
   // ── Derived display values ────────────────────────────────────────────────
   const winnerClass =
-    gameState.gameOver && gameState.gameWinner !== 'tie'
-      ? `${gameState.gameWinner.toLowerCase()}-winner`
-      : gameState.gameOver && gameState.gameWinner === 'tie'
+    displayedState.gameOver && displayedState.gameWinner !== 'tie'
+      ? `${displayedState.gameWinner.toLowerCase()}-winner`
+      : displayedState.gameOver && displayedState.gameWinner === 'tie'
         ? 'tie-winner'
-        : `${gameState.currentPlayer.toLowerCase()}-turn`
+        : `${displayedState.currentPlayer.toLowerCase()}-turn`
 
   const titleGlowClass =
-    gameState.gameOver && gameState.gameWinner !== 'tie'
-      ? `${gameState.gameWinner.toLowerCase()}-glow`
-      : gameState.gameOver && gameState.gameWinner === 'tie'
+    displayedState.gameOver && displayedState.gameWinner !== 'tie'
+      ? `${displayedState.gameWinner.toLowerCase()}-glow`
+      : displayedState.gameOver && displayedState.gameWinner === 'tie'
         ? ''
-        : `${gameState.currentPlayer.toLowerCase()}-glow`
+        : `${displayedState.currentPlayer.toLowerCase()}-glow`
 
   const isMyTurn =
     gameMode === 'local' ||
@@ -273,102 +294,116 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     (gameMode === 'online' && myPlayer === gameState.currentPlayer)
 
   const showEvalBar = gameMode !== 'online'
-
-  // Can undo = bot mode + at least 2 half-moves in history + not currently thinking
   const showUndo = gameMode === 'bot' && canUndo() && !isThinking
 
   return (
-    <div className={`game-container ${winnerClass}`}>
-      <h1 className={`game-title ${titleGlowClass}`}>ULTIMATE TIC TAC TOE</h1>
+    <div className="game-screen-wrapper">
+      <div className={`game-container ${winnerClass}`}>
+        <h1 className={`game-title ${titleGlowClass}`}>ULTIMATE TIC TAC TOE</h1>
 
-      <GameStatus
-        gameState={gameState}
-        myPlayer={gameMode === 'online' ? myPlayer : null}
-        gameMode={gameMode}
-        playerColor={playerColor}
-      />
-
-      <Timer
-        playerXTime={gameState.playerXTime}
-        playerOTime={gameState.playerOTime}
-        currentPlayer={gameState.currentPlayer}
-        gameState={gameState}
-      />
-
-      {/* Board + eval bar side by side */}
-      <div className="board-area">
-        {showEvalBar && (
-          <EvalBar
-            score={evalScore}
-            playerColor={gameMode === 'bot' ? playerColor : 'X'}
-          />
-        )}
-        <SuperBoard
-          boards={gameState.boards}
-          wonBoards={gameState.wonBoards}
-          activeBoard={gameState.activeBoard}
-          gameOver={gameState.gameOver}
-          gameWinner={gameState.gameWinner}
-          currentPlayer={gameState.currentPlayer}
-          onCellClick={handleMove}
-          isMyTurn={isMyTurn}
-          hintMoves={hintMoves}
+        <GameStatus
+          gameState={displayedState}
+          myPlayer={gameMode === 'online' ? myPlayer : null}
+          gameMode={gameMode}
+          playerColor={playerColor}
         />
-      </div>
 
-      {/* Bot thinking indicator */}
-      {gameMode === 'bot' && isThinking && (
-        <div className="bot-thinking-indicator">
-          Bot thinking
-          <span className="bot-thinking-dots">
-            <span /><span /><span />
-          </span>
+        <Timer
+          playerXTime={displayedState.playerXTime}
+          playerOTime={displayedState.playerOTime}
+          currentPlayer={displayedState.currentPlayer}
+          gameState={displayedState}
+        />
+
+        {/* Board area with EvalBar */}
+        <div className="board-area">
+          {showEvalBar && (
+            <EvalBar
+              score={evalScore}
+              playerColor={gameMode === 'bot' ? playerColor : 'X'}
+            />
+          )}
+          <SuperBoard
+            boards={displayedState.boards}
+            wonBoards={displayedState.wonBoards}
+            activeBoard={displayedState.activeBoard}
+            gameOver={displayedState.gameOver}
+            gameWinner={displayedState.gameWinner}
+            currentPlayer={displayedState.currentPlayer}
+            onCellClick={handleMove}
+            isMyTurn={isMyTurn}
+            hintMoves={hintMoves}
+            playedMove={playedMove}
+            recommendedMove={recommendedMove}
+          />
         </div>
-      )}
 
-      {/* Action buttons */}
-      <div className="action-buttons">
-        {gameMode === 'bot' && !gameState.gameOver && (
-          <div className="hint-mode-container">
-            <span className="hint-mode-label">💡 Hint Mode</span>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={hintMode}
-                onChange={(e) => setHintMode(e.target.checked)}
-              />
-              <span className="slider" />
-            </label>
+        {/* Bot thinking indicator */}
+        {gameMode === 'bot' && isThinking && (
+          <div className="bot-thinking-indicator">
+            Bot thinking
+            <span className="bot-thinking-dots">
+              <span /><span /><span />
+            </span>
           </div>
         )}
-        {showUndo && (
-          <button className="button button-undo" onClick={handleUndo} title="Undo last move">
-            ↩ Undo
-          </button>
+
+        {/* Action buttons */}
+        <div className="action-buttons">
+          {gameMode === 'bot' && !gameState.gameOver && (
+            <div className="hint-mode-container">
+              <span className="hint-mode-label">💡 Hint Mode</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={hintMode}
+                  onChange={(e) => setHintMode(e.target.checked)}
+                />
+                <span className="slider" />
+              </label>
+            </div>
+          )}
+          {showUndo && (
+            <button className="button button-undo" onClick={handleUndo} title="Undo last move">
+              ↩ Undo
+            </button>
+          )}
+          <button className="button" onClick={handleReset}>New Game</button>
+          <button className="button" onClick={handleBackToMenu}>Back to Menu</button>
+        </div>
+
+        <Suspense fallback={null}>
+          <RulesLazy gameState={displayedState} />
+        </Suspense>
+
+        {displayedState.gameOver && (
+          <div className={`game-over ${displayedState.gameWinner.toLowerCase()}`}>
+            {displayedState.gameWinner === 'tie'
+              ? 'Draw!'
+              : gameMode === 'bot'
+                ? displayedState.gameWinner === playerColor
+                  ? 'You Win! 🎉'
+                  : 'AI Wins!'
+                : gameMode === 'online' && myPlayer && myPlayer !== 'spectator'
+                  ? displayedState.gameWinner === myPlayer
+                    ? 'You Win!'
+                    : 'Opponent Wins!'
+                  : `Player ${displayedState.gameWinner} Wins!`}
+          </div>
         )}
-        <button className="button" onClick={handleReset}>New Game</button>
-        <button className="button" onClick={handleBackToMenu}>Back to Menu</button>
       </div>
 
-      <Suspense fallback={null}>
-        <RulesLazy gameState={gameState} />
-      </Suspense>
-
-      {gameState.gameOver && (
-        <div className={`game-over ${gameState.gameWinner.toLowerCase()}`}>
-          {gameState.gameWinner === 'tie'
-            ? 'Draw!'
-            : gameMode === 'bot'
-              ? gameState.gameWinner === playerColor
-                ? 'You Win! 🎉'
-                : 'AI Wins!'
-              : gameMode === 'online' && myPlayer && myPlayer !== 'spectator'
-                ? gameState.gameWinner === myPlayer
-                  ? 'You Win!'
-                  : 'Opponent Wins!'
-                : `Player ${gameState.gameWinner} Wins!`}
-        </div>
-      )}
+      {/* Move History sidebar panel */}
+      <MoveHistory
+        moveHistory={moveHistory}
+        viewingIndex={viewingIndex}
+        onStepTo={stepTo}
+        onStepForward={stepForward}
+        onStepBackward={stepBackward}
+        onStepToStart={stepToStart}
+        onStepToLive={stepToLive}
+        onBranchFrom={branchFrom}
+      />
     </div>
   )
 }
