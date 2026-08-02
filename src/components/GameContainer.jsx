@@ -22,14 +22,9 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   const [myPlayer, setMyPlayer] = useState(null)
   const [supabaseChannel, setSupabaseChannel] = useState(null)
 
-  // Hint state
-  const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
-  const [hintMoves, setHintMoves] = useState([]) // Array of { boardIndex, cellIndex }
-  const [isHinting, setIsHinting] = useState(false)
-
-  useEffect(() => {
-    localStorage.setItem('ttt-hint-mode', hintMode)
-  }, [hintMode])
+  // Hint state: precompute best move in background, toggle display on button click
+  const [showHint, setShowHint] = useState(false)
+  const [precomputedHints, setPrecomputedHints] = useState([])
 
   // 'local' and 'bot' both use local timer management; 'online' does not
   const { gameState, makeMove, resetGame, undoMove, canUndo, setGameState } =
@@ -45,6 +40,53 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     botPlayer,
     makeMove,
   )
+
+  // ── Precompute Hint Effect ────────────────────────────────────────────────
+  useEffect(() => {
+    if (gameState.gameOver || gameMode === 'online') {
+      setPrecomputedHints([])
+      setShowHint(false)
+      return
+    }
+
+    // In bot mode, only precompute on human player's turn
+    if (gameMode === 'bot' && (gameState.currentPlayer !== playerColor || isThinking)) {
+      setPrecomputedHints([])
+      setShowHint(false)
+      return
+    }
+
+    let active = true
+    let worker = null
+
+    try {
+      worker = new Worker(new URL('../utils/botWorker.js', import.meta.url), { type: 'module' })
+      worker.onmessage = (e) => {
+        if (e.data.type === 'HINT' && active) {
+          setPrecomputedHints(e.data.moves ?? [])
+          worker.terminate()
+        }
+      }
+      worker.postMessage({
+        type: 'HINT',
+        gameState: { ...gameState },
+        difficulty: 'hard',
+        botPlayer: gameState.currentPlayer,
+      })
+    } catch (_) {
+      import('../utils/botEngine.js').then(({ getBestMoves }) => {
+        if (active) {
+          const moves = getBestMoves(gameState, 'hard', gameState.currentPlayer)
+          setPrecomputedHints(moves ?? [])
+        }
+      })
+    }
+
+    return () => {
+      active = false
+      if (worker) worker.terminate()
+    }
+  }, [gameState, gameMode, playerColor, isThinking])
 
   const [evalScore, setEvalScore] = useState(0)
   const evalWorkerRef = useRef(null)
@@ -79,20 +121,16 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     if (evalWorkerRef.current) {
       const worker = evalWorkerRef.current
       const handler = (e) => {
-        if (e.data.type === 'EVALUATE' && active) {
+        if (e.data.type === 'EVAL_UPDATE' && active) {
           setEvalScore(e.data.score ?? 0)
         }
       }
       worker.addEventListener('message', handler)
-      worker.postMessage({
-        type: 'EVALUATE',
-        gameState: snapshot,
-      })
+      worker.postMessage({ type: 'EVALUATE', gameState: snapshot })
 
       return () => {
         active = false
         worker.removeEventListener('message', handler)
-        // Abort the background search thread immediately to keep the CPU free
         worker.terminate()
         try {
           evalWorkerRef.current = new Worker(
@@ -106,10 +144,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     } else {
       // Fallback: synchronous
       import('../utils/botEngine.js').then(({ getBestMoveScore }) => {
-        if (active) {
-          const score = getBestMoveScore(snapshot)
-          setEvalScore(score)
-        }
+        if (active) setEvalScore(getBestMoveScore(snapshot))
       })
     }
   }, [gameState, gameMode])
@@ -172,13 +207,13 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     } else {
       makeMove(boardIndex, cellIndex)
     }
-    // Clear hint when a move is made
-    setHintMoves([])
+    // Clear hint display when a move is made
+    setShowHint(false)
   }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase])
 
   const handleReset = async () => {
     cancelThink()
-    setHintMoves([])
+    setShowHint(false)
     if (gameMode === 'online' && supabase) {
       const newState = resetGame()
       try { await supabase.from('games').update({ state: newState }).eq('code', gameCode) }
@@ -197,60 +232,9 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   // ── Undo ──────────────────────────────────────────────────────────────────
   const handleUndo = useCallback(() => {
     cancelThink()
-    setHintMoves([])
+    setShowHint(false)
     undoMove(2) // undo human + bot response
   }, [cancelThink, undoMove])
-
-  // ── Hint Mode Effect ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!hintMode) {
-      setHintMoves([])
-      return
-    }
-    if (gameMode !== 'bot') return
-    if (gameState.gameOver) {
-      setHintMoves([])
-      return
-    }
-    // Only show hints on human player's turn
-    if (gameState.currentPlayer !== playerColor) {
-      setHintMoves([])
-      return
-    }
-    if (isThinking) return
-
-    setIsHinting(true)
-    const snapshot = { ...gameState }
-
-    let worker = null
-    try {
-      worker = new Worker(new URL('../utils/botWorker.js', import.meta.url), { type: 'module' })
-      worker.onmessage = (e) => {
-        if (e.data.type === 'HINT') {
-          setHintMoves(e.data.moves ?? [])
-          setIsHinting(false)
-          worker.terminate()
-        }
-      }
-      worker.postMessage({
-        type: 'HINT',
-        gameState: snapshot,
-        difficulty: 'hard',
-        botPlayer: playerColor,
-      })
-    } catch (_) {
-      // Fallback: synchronous (import dynamically to avoid top-level await)
-      import('../utils/botEngine.js').then(({ getBestMoves }) => {
-        const moves = getBestMoves(snapshot, 'hard', playerColor)
-        setHintMoves(moves ?? [])
-        setIsHinting(false)
-      })
-    }
-
-    return () => {
-      if (worker) worker.terminate()
-    }
-  }, [hintMode, gameMode, gameState, playerColor, isThinking])
 
   // ── Derived display values ────────────────────────────────────────────────
   const winnerClass =
@@ -276,6 +260,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   // Can undo = bot mode + at least 2 half-moves in history + not currently thinking
   const showUndo = gameMode === 'bot' && canUndo() && !isThinking
+
+  const showHintButton =
+    !gameState.gameOver &&
+    (gameMode === 'local' || (gameMode === 'bot' && !isThinking && gameState.currentPlayer === playerColor))
+
+  const hintMoves = showHint ? precomputedHints : []
 
   return (
     <div className={`game-container ${winnerClass}`}>
@@ -328,18 +318,14 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
       {/* Action buttons */}
       <div className="action-buttons">
-        {gameMode === 'bot' && !gameState.gameOver && (
-          <div className="hint-mode-container">
-            <span className="hint-mode-label">💡 Hint Mode</span>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={hintMode}
-                onChange={(e) => setHintMode(e.target.checked)}
-              />
-              <span className="slider" />
-            </label>
-          </div>
+        {showHintButton && (
+          <button
+            className={`button button-hint ${showHint ? 'active' : ''}`}
+            onClick={() => setShowHint((prev) => !prev)}
+            title={showHint ? 'Hide move suggestion' : 'Show best move suggestion'}
+          >
+            💡 {showHint ? 'Hide Hint' : 'Hint'}
+          </button>
         )}
         {showUndo && (
           <button className="button button-undo" onClick={handleUndo} title="Undo last move">

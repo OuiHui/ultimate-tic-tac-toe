@@ -148,6 +148,16 @@
   text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
+.button.button-hint.active {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.9);
+  box-shadow:
+    0 0 15px rgba(255, 215, 0, 0.45),
+    inset 0 0 12px rgba(255, 215, 0, 0.15),
+    0 4px 15px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+}
+
 .button.button-hint:disabled {
   opacity: 0.5;
   cursor: not-allowed;
