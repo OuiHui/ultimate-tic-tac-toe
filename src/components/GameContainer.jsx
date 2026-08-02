@@ -275,7 +275,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   const showEvalBar = gameMode !== 'online'
 
   // Can undo = bot mode + at least 2 half-moves in history + not currently thinking
-  const showUndo = gameMode === 'bot' && canUndo() && !isThinking && !gameState.gameOver
+  const showUndo = gameMode === 'bot' && canUndo() && !isThinking
 
   return (
     <div className={`game-container ${winnerClass}`}>

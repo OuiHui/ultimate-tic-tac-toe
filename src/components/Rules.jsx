@@ -29,7 +29,6 @@ function Rules({ gameState }) {
         <li>Your move determines which grid your opponent plays in next</li>
         <li>If target grid is won or full, play anywhere available</li>
         <li>Win by getting 3 small grids in a row</li>
-        <li>Blue glow shows your active playing area</li>
       </ul>
     </div>
   )
