@@ -397,6 +397,8 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       <MoveHistory
         moveHistory={moveHistory}
         viewingIndex={viewingIndex}
+        gameState={displayedState}
+        gameMode={gameMode}
         onStepTo={stepTo}
         onStepForward={stepForward}
         onStepBackward={stepBackward}

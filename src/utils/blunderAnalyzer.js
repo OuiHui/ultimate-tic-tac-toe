@@ -1,6 +1,6 @@
 // Blunder Analyzer for Ultimate Tic Tac Toe
 import { evaluatePosition } from './evaluator.js'
-import { getBestMoves } from './botEngine.js'
+import { evaluateAllMoves } from './botEngine.js'
 
 /**
  * Returns evaluation score from the given player's perspective.
@@ -11,21 +11,21 @@ function getPlayerScore(gameState, player) {
 }
 
 /**
- * Analyzes a move by comparing the evaluation of the played move
- * against the top recommended move available in that turn.
+ * Fast synchronous analysis of a played move (< 10ms).
+ * Compares played move against engine recommended moves derived from depth search.
  * 
  * @param {Object} prevState - Game state before move was made
  * @param {Object} move - { boardIndex, cellIndex } played
  * @param {Object} nextState - Game state after move was made
  * @returns {Object} Analysis result containing classification, evalDelta, and bestMove
  */
-export function analyzeMove(prevState, move, nextState) {
+export function analyzeMove(prevState, move, nextState, difficulty = 'hard') {
   const player = prevState.currentPlayer
-  const scoreAfter = getPlayerScore(nextState, player)
 
-  // Find top engine moves at hard depth (matching Hint Mode depth)
-  const bestMoves = getBestMoves(prevState, 'hard', player)
-  if (!bestMoves || bestMoves.length === 0) {
+  // Evaluate legal moves at state before move was made using engine search aligned with hint depth
+  const moveEvals = evaluateAllMoves(prevState, difficulty, player)
+  if (!moveEvals || moveEvals.length === 0) {
+    const scoreAfter = getPlayerScore(nextState, player)
     return {
       classification: 'BEST',
       evalDelta: 0,
@@ -35,47 +35,52 @@ export function analyzeMove(prevState, move, nextState) {
     }
   }
 
-  // Check if played move is one of the top recommended engine moves
-  const isPlayedMoveBest = bestMoves.some(
+  // Sort move evaluations descending (best engine move for player comes first)
+  moveEvals.sort((a, b) => b.score - a.score)
+
+  const topEval = moveEvals[0]
+  const bestScore = topEval.score
+
+  // Top moves are moves that tie for bestScore (within 0.5 pts)
+  const topBestMoves = moveEvals.filter(item => bestScore - item.score <= 0.5).map(item => item.move)
+  const topBestMove = topBestMoves[0]
+
+  const isPlayedMoveBest = topBestMoves.some(
     bm => bm.boardIndex === move.boardIndex && bm.cellIndex === move.cellIndex
   )
 
-  if (isPlayedMoveBest) {
-    return {
-      classification: 'BEST',
-      evalDelta: 0,
-      scoreAfter,
-      bestMove: move,
-      isBlunder: false,
-    }
-  }
+  // Find evaluation of played move
+  const playedEvalObj = moveEvals.find(
+    item => item.move.boardIndex === move.boardIndex && item.move.cellIndex === move.cellIndex
+  )
 
-  // Best alternative move
-  const topBestMove = bestMoves[0]
+  const playedScore = playedEvalObj ? playedEvalObj.score : getPlayerScore(nextState, player)
+  const evalDelta = Math.max(0, Math.round(bestScore - playedScore))
 
-  // Compare position evaluation before & after relative to optimal expectation
-  const scoreBefore = getPlayerScore(prevState, player)
-  const evalDelta = Math.max(0, Math.round(scoreBefore - scoreAfter))
-
-  let classification = 'BEST'
+  let classification = 'GOOD'
   let isBlunder = false
 
-  if (evalDelta >= 25 || (scoreBefore >= -10 && scoreAfter <= -30)) {
+  if (isPlayedMoveBest) {
+    classification = 'BEST'
+  } else if (evalDelta >= 25 || (bestScore >= -10 && playedScore <= -40) || playedScore <= -90) {
     classification = 'BLUNDER'
     isBlunder = true
-  } else if (evalDelta >= 15) {
+  } else if (evalDelta >= 11) {
     classification = 'MISTAKE'
-  } else if (evalDelta >= 6) {
+  } else if (evalDelta >= 4) {
     classification = 'INACCURACY'
   } else {
-    classification = 'BEST'
+    classification = 'GOOD'
   }
 
   return {
     classification,
     evalDelta,
-    scoreAfter,
+    scoreAfter: Math.round(playedScore),
     bestMove: topBestMove,
     isBlunder,
   }
 }
+
+
+
