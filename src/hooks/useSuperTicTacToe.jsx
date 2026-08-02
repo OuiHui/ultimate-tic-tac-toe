@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { initTimers, startTicking, stopTicking } from '../stores/timerStore'
 import { WIN_PATTERNS } from '../utils/constants.js'
+import { analyzeMove } from '../utils/blunderAnalyzer.js'
 
 const DEFAULT_TIME = 300 // 5 minutes in seconds
 
@@ -20,11 +21,13 @@ function makeInitialState(xTime, oTime) {
 
 export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIME, initialOTime = DEFAULT_TIME) {
   const [gameState, setGameState] = useState(() => makeInitialState(initialXTime, initialOTime))
+  const [moveHistory, setMoveHistory] = useState([])
+  const [viewingIndex, setViewingIndex] = useState(null)
 
-  // Move history for undo — stored in a ref so it doesn't cause re-renders
+  // Snapshots for undo
   const historyRef = useRef([])
 
-  // Track the initial times so resetGame uses the same values
+  // Track initial times so resetGame uses the same values
   const initTimesRef = useRef({ x: initialXTime, o: initialOTime })
   initTimesRef.current = { x: initialXTime, o: initialOTime }
 
@@ -71,21 +74,33 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
   const isBoardFull = (board) => board.every(cell => cell !== '')
 
   const makeMove = (boardIndex, cellIndex) => {
-    if (gameState.gameOver) return null
-    if (gameState.wonBoards[boardIndex]) return null
-    if (gameState.boards[boardIndex][cellIndex]) return null
-    if (gameState.activeBoard !== null && gameState.activeBoard !== boardIndex) return null
+    // If currently browsing a past move, branch from that state
+    let baseState = gameState
+    let currentHistory = moveHistory
 
-    // Save snapshot for undo before applying the move
-    historyRef.current.push(gameState)
+    if (viewingIndex !== null && viewingIndex < moveHistory.length - 1) {
+      const branchEntry = moveHistory[viewingIndex]
+      baseState = branchEntry.stateAfter
+      currentHistory = moveHistory.slice(0, viewingIndex + 1)
+      historyRef.current = historyRef.current.slice(0, viewingIndex + 1)
+      setViewingIndex(null)
+    }
+
+    if (baseState.gameOver) return null
+    if (baseState.wonBoards[boardIndex]) return null
+    if (baseState.boards[boardIndex][cellIndex]) return null
+    if (baseState.activeBoard !== null && baseState.activeBoard !== boardIndex) return null
+
+    // Save snapshot for undo
+    historyRef.current.push(baseState)
 
     const newState = {
-      ...gameState,
+      ...baseState,
       gameStarted: true,
-      boards: gameState.boards.map((board, idx) =>
+      boards: baseState.boards.map((board, idx) =>
         idx === boardIndex
           ? board.map((cell, cellIdx) =>
-              cellIdx === cellIndex ? gameState.currentPlayer : cell
+              cellIdx === cellIndex ? baseState.currentPlayer : cell
             )
           : board
       )
@@ -93,10 +108,10 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
 
     const boardResult = checkWin(newState.boards[boardIndex])
     if (boardResult && boardResult !== 'tie') {
-      newState.wonBoards = [...gameState.wonBoards]
+      newState.wonBoards = [...baseState.wonBoards]
       newState.wonBoards[boardIndex] = boardResult
     } else if (boardResult === 'tie') {
-      newState.wonBoards = [...gameState.wonBoards]
+      newState.wonBoards = [...baseState.wonBoards]
       newState.wonBoards[boardIndex] = 'tie'
     }
 
@@ -120,19 +135,28 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
       }
     }
 
-    newState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X'
+    newState.currentPlayer = baseState.currentPlayer === 'X' ? 'O' : 'X'
 
+    // Blunder analysis
+    const analysis = analyzeMove(baseState, { boardIndex, cellIndex }, newState)
+
+    const newEntry = {
+      moveNumber: currentHistory.length + 1,
+      player: baseState.currentPlayer,
+      boardIndex,
+      cellIndex,
+      prevState: baseState,
+      stateAfter: newState,
+      analysis,
+    }
+
+    setMoveHistory([...currentHistory, newEntry])
     setGameState(newState)
     return newState
   }
 
-  /**
-   * Undo the last N half-moves (default 2 = human + bot response).
-   * Returns true if undo was possible, false otherwise.
-   */
   const undoMove = (steps = 2) => {
     if (historyRef.current.length === 0) return false
-    // Pop `steps` states; restore the oldest of those
     let target = null
     for (let i = 0; i < steps; i++) {
       if (historyRef.current.length > 0) {
@@ -140,6 +164,9 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
       }
     }
     if (!target) return false
+
+    setMoveHistory(prev => prev.slice(0, Math.max(0, prev.length - steps)))
+    setViewingIndex(null)
     setGameState(target)
     return true
   }
@@ -147,6 +174,8 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
   const resetGame = () => {
     stopTicking()
     historyRef.current = []
+    setMoveHistory([])
+    setViewingIndex(null)
     const { x, o } = initTimesRef.current
     const newState = makeInitialState(x, o)
     setGameState(newState)
@@ -154,12 +183,75 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
     return newState
   }
 
+  // Time Travel Controls
+  const stepTo = (index) => {
+    if (index === null || index < 0 || index >= moveHistory.length) {
+      setViewingIndex(null)
+    } else {
+      setViewingIndex(index)
+    }
+  }
+
+  const stepForward = () => {
+    if (viewingIndex === null) return
+    if (viewingIndex >= moveHistory.length - 1) {
+      setViewingIndex(null)
+    } else {
+      setViewingIndex(viewingIndex + 1)
+    }
+  }
+
+  const stepBackward = () => {
+    if (moveHistory.length === 0) return
+    if (viewingIndex === null) {
+      setViewingIndex(moveHistory.length - 1)
+    } else if (viewingIndex > 0) {
+      setViewingIndex(viewingIndex - 1)
+    }
+  }
+
+  const stepToStart = () => {
+    if (moveHistory.length > 0) {
+      setViewingIndex(0)
+    }
+  }
+
+  const stepToLive = () => {
+    setViewingIndex(null)
+  }
+
+  const branchFrom = (index) => {
+    if (index < 0 || index >= moveHistory.length) return
+    const entry = moveHistory[index]
+    const truncatedHistory = moveHistory.slice(0, index + 1)
+    setMoveHistory(truncatedHistory)
+    historyRef.current = historyRef.current.slice(0, index + 1)
+    setGameState(entry.stateAfter)
+    setViewingIndex(null)
+  }
+
+  // Determine displayed state
+  const isBrowsingHistory = viewingIndex !== null && viewingIndex < moveHistory.length
+  const displayedState = isBrowsingHistory
+    ? moveHistory[viewingIndex].stateAfter
+    : gameState
+
   return {
     gameState,
+    displayedState,
+    moveHistory,
+    viewingIndex,
+    isBrowsingHistory,
     makeMove,
     resetGame,
     undoMove,
     canUndo: () => historyRef.current.length >= 2,
-    setGameState
+    setGameState,
+    stepTo,
+    stepForward,
+    stepBackward,
+    stepToStart,
+    stepToLive,
+    branchFrom,
   }
 }

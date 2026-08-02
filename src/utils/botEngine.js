@@ -245,3 +245,28 @@ export function getBestMoveScore(gameState) {
   }
   return bestScore
 }
+
+export function evaluateAllMoves(gameState, difficulty = 'hard', botPlayer) {
+  transpositionTable.clear()
+  const moves = getLegalMoves(gameState)
+  if (!moves.length) return []
+
+  const depth = DEPTHS[difficulty] ?? 4
+  const player = botPlayer || gameState.currentPlayer
+
+  const moveEvaluations = []
+  for (const move of moves) {
+    const child = applyMove(gameState, move.boardIndex, move.cellIndex)
+    const rawScore = child.gameOver
+      ? evaluatePosition(child, depth)
+      : depth <= 1
+        ? evaluatePosition(child, depth)
+        : minimax(child, depth - 1, -Infinity, Infinity)
+
+    const score = player === 'X' ? rawScore : -rawScore
+    moveEvaluations.push({ move, score, rawScore })
+  }
+
+  return moveEvaluations
+}
+

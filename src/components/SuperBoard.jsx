@@ -1,7 +1,19 @@
 import React, { useMemo } from 'react'
 import SmallBoard from './SmallBoard'
 
-function SuperBoard({ boards, wonBoards, activeBoard, gameOver, gameWinner, currentPlayer, onCellClick, isMyTurn, hintMoves = [] }) {
+function SuperBoard({
+  boards,
+  wonBoards,
+  activeBoard,
+  gameOver,
+  gameWinner,
+  currentPlayer,
+  onCellClick,
+  isMyTurn,
+  hintMoves = [],
+  playedMove = null,
+  recommendedMove = null,
+}) {
   const containerClass = useMemo(() => {
     if (gameOver) {
       if (gameWinner === 'tie') return 'super-board tie-winner'
@@ -15,6 +27,15 @@ function SuperBoard({ boards, wonBoards, activeBoard, gameOver, gameWinner, curr
       {boards.map((board, boardIndex) => {
         const boardHintMoves = hintMoves.filter(m => m.boardIndex === boardIndex)
         const hintCellIndices = boardHintMoves.map(m => m.cellIndex)
+
+        const playedCellIndex = playedMove && playedMove.boardIndex === boardIndex
+          ? playedMove.cellIndex
+          : null
+
+        const bestCellIndex = recommendedMove && recommendedMove.boardIndex === boardIndex
+          ? recommendedMove.cellIndex
+          : null
+
         return (
           <SmallBoard
             key={boardIndex}
@@ -30,6 +51,8 @@ function SuperBoard({ boards, wonBoards, activeBoard, gameOver, gameWinner, curr
             isMyTurn={isMyTurn}
             currentPlayer={currentPlayer}
             hintCellIndices={hintCellIndices}
+            playedCellIndex={playedCellIndex}
+            bestCellIndex={bestCellIndex}
           />
         )
       })}
