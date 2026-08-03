@@ -69,7 +69,6 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
   const handleOnlineMultiplayer = () => setShowOnlineOptions(true)
 
   const handleCreateGame = async () => {
-    if (!supabase) return
     if (displayName.trim()) localStorage.setItem('displayName', displayName.trim())
     try {
       const code = await createRoom(supabase)
@@ -78,11 +77,12 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
       onGameModeSelect('online')
     } catch (err) {
       console.error('Error creating game:', err)
+      setJoinError('Error creating room. Please try again.')
     }
   }
 
   const handleJoinGame = async () => {
-    if (!supabase || !joinCode.trim()) return
+    if (!joinCode.trim()) return
     if (displayName.trim()) localStorage.setItem('displayName', displayName.trim())
     const code = joinCode.trim().toUpperCase()
     try {
@@ -91,7 +91,7 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
       onGameModeSelect('online')
     } catch (err) {
       console.error('Error joining game:', err)
-      setJoinError('Game not found!')
+      setJoinError('Game room not found!')
     }
   }
 

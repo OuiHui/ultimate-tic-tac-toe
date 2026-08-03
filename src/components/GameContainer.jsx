@@ -18,6 +18,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     makeMove: makeMoveSupabase,
     subscribeToGame,
     unsubscribeFromGame,
+    getPlayerId,
   } = useSupabase()
 
   const {
@@ -30,6 +31,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     undoMove,
     canUndo,
     setGameState,
+    syncRemoteState,
     stepTo,
     stepForward,
     stepBackward,
@@ -65,10 +67,13 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
       if (gameState.wonBoards[boardIndex] || gameState.boards[boardIndex][cellIndex]) return
       if (gameState.activeBoard !== null && gameState.activeBoard !== boardIndex) return
-      const newState = makeMove(boardIndex, cellIndex)
-      if (newState && supabase) {
-        try { await makeMoveSupabase(supabase, gameCode, newState, myPlayer) }
-        catch (err) { console.error('Error syncing move:', err) }
+      const result = makeMove(boardIndex, cellIndex)
+      if (result && result.newState) {
+        try {
+          await makeMoveSupabase(supabase, gameCode, result.newState, myPlayer, result.moveHistory)
+        } catch (err) {
+          console.error('Error syncing move:', err)
+        }
       }
     } else {
       makeMove(boardIndex, cellIndex)
@@ -79,14 +84,15 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   const handleReset = useCallback(async () => {
     cancelThink()
     setHintMoves([])
-    if (gameMode === 'online' && supabase) {
-      const newState = resetGame()
-      try { await supabase.from('games').update({ state: newState }).eq('code', gameCode) }
-      catch (err) { console.error('Error resetting game:', err) }
-    } else {
-      resetGame()
+    const newState = resetGame()
+    if (gameMode === 'online') {
+      try {
+        await makeMoveSupabase(supabase, gameCode, { ...newState, moveHistory: [] }, myPlayer, [])
+      } catch (err) {
+        console.error('Error resetting game:', err)
+      }
     }
-  }, [cancelThink, gameMode, supabase, gameCode, resetGame])
+  }, [cancelThink, gameMode, supabase, gameCode, resetGame, makeMoveSupabase, myPlayer])
 
   const handleBackToMenu = useCallback(() => {
     cancelThink()
@@ -164,7 +170,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   // Online multiplayer setup
   useEffect(() => {
-    if (gameMode === 'online' && supabase && gameCode) {
+    if (gameMode === 'online' && gameCode) {
       setupMultiplayer()
     }
     return () => {
@@ -174,31 +180,56 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   const setupMultiplayer = async () => {
     const displayName = localStorage.getItem('displayName') || 'Anonymous'
+    const myId = getPlayerId()
+
     try {
       const room = await joinRoom(supabase, gameCode)
       let assignedPlayer
       let updateData = {}
-      if (!room.player_x) {
-        assignedPlayer = 'X'; updateData = { player_x: displayName }
-      } else if (!room.player_o && room.player_x !== displayName) {
-        assignedPlayer = 'O'; updateData = { player_o: displayName }
-      } else if (room.player_x === displayName) {
+
+      // Identify player by unique client ID or available slot
+      if (room.player_x_id === myId || (room.player_x === displayName && !room.player_x_id)) {
         assignedPlayer = 'X'
-      } else if (room.player_o === displayName) {
+        if (!room.player_x_id) updateData.player_x_id = myId
+      } else if (room.player_o_id === myId || (room.player_o === displayName && !room.player_o_id)) {
         assignedPlayer = 'O'
+        if (!room.player_o_id) updateData.player_o_id = myId
+      } else if (!room.player_x && !room.player_x_id) {
+        assignedPlayer = 'X'
+        updateData = { player_x: displayName, player_x_id: myId }
+      } else if (!room.player_o && !room.player_o_id) {
+        assignedPlayer = 'O'
+        updateData = { player_o: displayName, player_o_id: myId }
       } else {
         assignedPlayer = 'spectator'
       }
+
       setMyPlayer(assignedPlayer)
       localStorage.setItem('super-ttt-player-' + gameCode, assignedPlayer)
+
       if (Object.keys(updateData).length > 0) {
-        await supabase.from('games').update(updateData).eq('code', gameCode)
+        const updatedRoom = { ...room, ...updateData }
+        try {
+          localStorage.setItem(`ttt-room-${gameCode}`, JSON.stringify(updatedRoom))
+        } catch (_) {}
+
+        if (supabase) {
+          try {
+            await supabase.from('games').update(updateData).eq('code', gameCode)
+          } catch (_) {}
+        }
       }
-      if (room.state) setGameState(room.state)
-      const channel = subscribeToGame(supabase, gameCode, (updated) => {
-        if (updated?.state) setGameState(updated.state)
+
+      if (room.state) {
+        syncRemoteState(room.state, room.state.moveHistory)
+      }
+
+      const subscription = subscribeToGame(supabase, gameCode, (updated) => {
+        if (updated?.state) {
+          syncRemoteState(updated.state, updated.state.moveHistory)
+        }
       })
-      setSupabaseChannel(channel)
+      setSupabaseChannel(subscription)
     } catch (err) {
       console.error('Error setting up multiplayer:', err)
     }

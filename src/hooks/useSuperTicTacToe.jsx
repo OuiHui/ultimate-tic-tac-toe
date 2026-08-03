@@ -36,7 +36,6 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
   }, [])
 
   useEffect(() => {
-    if (!isLocalGame) return
     if (!gameState.gameStarted || gameState.gameOver) {
       stopTicking()
       return
@@ -59,7 +58,18 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
     return () => {
       stopTicking()
     }
-  }, [isLocalGame, gameState.currentPlayer, gameState.gameOver, gameState.gameStarted])
+  }, [gameState.currentPlayer, gameState.gameOver, gameState.gameStarted])
+
+  const syncRemoteState = (remoteState, remoteHistory = null) => {
+    if (!remoteState) return
+    setGameState(remoteState)
+    if (remoteHistory && Array.isArray(remoteHistory)) {
+      setMoveHistory(remoteHistory)
+    } else if (remoteState.moveHistory && Array.isArray(remoteState.moveHistory)) {
+      setMoveHistory(remoteState.moveHistory)
+    }
+    setViewingIndex(null)
+  }
 
   const checkWin = (board) => {
     for (const pattern of WIN_PATTERNS) {
@@ -150,9 +160,10 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
       analysis,
     }
 
-    setMoveHistory([...currentHistory, newEntry])
-    setGameState(newState)
-    return newState
+    const updatedHistory = [...currentHistory, newEntry]
+    setMoveHistory(updatedHistory)
+    setGameState({ ...newState, moveHistory: updatedHistory })
+    return { newState, moveHistory: updatedHistory }
   }
 
   const undoMove = (steps = 2) => {
@@ -247,6 +258,7 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
     undoMove,
     canUndo: () => historyRef.current.length >= 2,
     setGameState,
+    syncRemoteState,
     stepTo,
     stepForward,
     stepBackward,
