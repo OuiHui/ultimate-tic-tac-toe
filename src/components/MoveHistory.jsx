@@ -14,6 +14,13 @@ import {
   copyToClipboard
 } from '../utils/exportUtils'
 
+const NOTATION_OPTIONS = [
+  { value: 'full', label: 'Full Words', desc: 'Top-Left → Center', example: 'Top-Left ➔ Center' },
+  { value: 'algebraic', label: 'Algebraic', desc: 'A1 → b2', example: 'A1 ➔ b2' },
+  { value: 'numeric', label: 'Numeric', desc: 'Board 1 → Cell 5', example: '#1 ➔ #5' },
+  { value: 'short', label: 'Short Code', desc: 'TL → C', example: 'TL ➔ C' },
+]
+
 function MoveHistory({
   moveHistory = [],
   viewingIndex = null,
@@ -29,21 +36,34 @@ function MoveHistory({
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [showLegend, setShowLegend] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState(null)
   const [notationStyle, setNotationStyle] = useState(() => {
     return localStorage.getItem('ttt_notation_style') || 'full'
   })
   const listEndRef = useRef(null)
+  const dropdownRef = useRef(null)
 
   const isLive = viewingIndex === null || viewingIndex === moveHistory.length - 1
   const selectedMove = viewingIndex !== null && viewingIndex < moveHistory.length
     ? moveHistory[viewingIndex]
     : null
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const handleStyleChange = (newStyle) => {
     setNotationStyle(newStyle)
     localStorage.setItem('ttt_notation_style', newStyle)
   }
+
 
   const triggerToast = (msg) => {
     setToastMessage(msg)
@@ -127,34 +147,68 @@ function MoveHistory({
             📤 Export
           </button>
           <button
-            className="collapse-toggle"
+            className={`collapse-toggle ${isCollapsed ? 'collapsed' : ''}`}
             onClick={() => setIsCollapsed(prev => !prev)}
             title={isCollapsed ? 'Expand Move History' : 'Collapse Move History'}
+            aria-label={isCollapsed ? 'Expand Move History' : 'Collapse Move History'}
           >
-            {isCollapsed ? '◀' : '▶'}
+            <svg viewBox="0 0 24 24" width="16" height="16" className="collapse-chevron-icon">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </div>
       </div>
+
 
       {!isCollapsed && (
         <>
           {/* Notation Style Selector & Legend Toggle */}
           <div className="notation-toolbar">
-            <label htmlFor="notation-select" className="notation-label">
-              Notation:
-            </label>
-            <select
-              id="notation-select"
-              className="notation-select"
-              value={notationStyle}
-              onChange={(e) => handleStyleChange(e.target.value)}
-              title="Select notation format style"
-            >
-              <option value="full">Full Words (Top-Left → Center)</option>
-              <option value="algebraic">Algebraic (A1 → b2)</option>
-              <option value="numeric">Numbers (Board 1 → Cell 5)</option>
-              <option value="short">Short (TL → C)</option>
-            </select>
+            <span className="notation-label">Notation:</span>
+            <div className="custom-dropdown" ref={dropdownRef}>
+              <button
+                type="button"
+                className={`custom-dropdown-trigger ${isDropdownOpen ? 'open' : ''}`}
+                onClick={() => setIsDropdownOpen(prev => !prev)}
+                title="Select notation format style"
+              >
+                <span className="dropdown-selected-label">
+                  {NOTATION_OPTIONS.find(o => o.value === notationStyle)?.label}
+                </span>
+                <span className="dropdown-selected-desc">
+                  ({NOTATION_OPTIONS.find(o => o.value === notationStyle)?.desc})
+                </span>
+                <svg className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`} viewBox="0 0 24 24" width="14" height="14">
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {isDropdownOpen && (
+                <div className="custom-dropdown-menu">
+                  {NOTATION_OPTIONS.map((opt) => {
+                    const isSelected = opt.value === notationStyle
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`dropdown-option-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          handleStyleChange(opt.value)
+                          setIsDropdownOpen(false)
+                        }}
+                      >
+                        <div className="option-main">
+                          <span className="option-title">{opt.label}</span>
+                          <span className="option-example">{opt.example}</span>
+                        </div>
+                        {isSelected && <span className="option-checkmark">✓</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             <button
               className={`legend-toggle-btn ${showLegend ? 'active' : ''}`}
               onClick={() => {
