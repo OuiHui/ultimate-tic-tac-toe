@@ -52,6 +52,8 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   // ── 2. Local State Hooks ───────────────────────────────────────────────────
   const [myPlayer, setMyPlayer] = useState(null)
+  const [roomInfo, setRoomInfo] = useState(null)
+  const [copied, setCopied] = useState(false)
   const [supabaseChannel, setSupabaseChannel] = useState(null)
   const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
   const [hintMoves, setHintMoves] = useState([])
@@ -60,6 +62,37 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   // ── 3. Refs ────────────────────────────────────────────────────────────────
   const evalWorkerRef = useRef(null)
+
+  // Copy code handler
+  const handleCopyCode = useCallback(() => {
+    if (!gameCode) return
+    const textToCopy = gameCode
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          setCopied(true)
+          setTimeout(() => setCopied(false), 2000)
+        })
+        .catch(() => fallbackCopy(textToCopy))
+    } else {
+      fallbackCopy(textToCopy)
+    }
+  }, [gameCode])
+
+  const fallbackCopy = (text) => {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Fallback copy failed', err)
+    }
+    document.body.removeChild(textArea)
+  }
 
   // ── 4. Callbacks ───────────────────────────────────────────────────────────
   const handleMove = useCallback(async (boardIndex, cellIndex) => {
@@ -184,6 +217,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
     try {
       const room = await joinRoom(supabase, gameCode)
+      setRoomInfo(room)
       let assignedPlayer
       let updateData = {}
 
@@ -209,8 +243,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
       if (Object.keys(updateData).length > 0) {
         const updatedRoom = { ...room, ...updateData }
+        setRoomInfo(updatedRoom)
         try {
           localStorage.setItem(`ttt-room-${gameCode}`, JSON.stringify(updatedRoom))
+          const bc = new BroadcastChannel(`ttt-game-${gameCode}`)
+          bc.postMessage({ type: 'ROOM_UPDATE', room: updatedRoom })
+          bc.close()
         } catch (_) {}
 
         if (supabase) {
@@ -225,8 +263,15 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       }
 
       const subscription = subscribeToGame(supabase, gameCode, (updated) => {
-        if (updated?.state) {
-          syncRemoteState(updated.state, updated.state.moveHistory)
+        if (updated) {
+          if (updated.state) {
+            syncRemoteState(updated.state, updated.state.moveHistory)
+          }
+          if (updated.room) {
+            setRoomInfo(prev => ({ ...prev, ...updated.room }))
+          } else if (updated.code) {
+            setRoomInfo(prev => ({ ...prev, ...updated }))
+          }
         }
       })
       setSupabaseChannel(subscription)
@@ -317,6 +362,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     (gameMode === 'bot' && !isThinking && gameState.currentPlayer === playerColor) ||
     (gameMode === 'online' && myPlayer === gameState.currentPlayer)
 
+  const isOpponentConnected = roomInfo && (
+    myPlayer === 'X' 
+      ? Boolean(roomInfo.player_o || roomInfo.player_o_id) 
+      : Boolean(roomInfo.player_x || roomInfo.player_x_id)
+  )
+
   const showEvalBar = gameMode !== 'online'
   const showUndo = gameMode === 'bot' && canUndo() && !isThinking
 
@@ -324,6 +375,31 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     <div className="game-screen-wrapper">
       <div className={`game-container ${winnerClass}`}>
         <h1 className={`game-title ${titleGlowClass}`}>ULTIMATE TIC TAC TOE</h1>
+
+        {gameMode === 'online' && gameCode && (
+          <div className="online-room-banner">
+            <div className="room-code-section">
+              <span className="room-code-label">ROOM CODE:</span>
+              <span className="room-code-value">{gameCode}</span>
+              <button 
+                className={`copy-code-btn ${copied ? 'copied' : ''}`}
+                onClick={handleCopyCode}
+                title="Copy room code to clipboard"
+              >
+                {copied ? '✓ Copied!' : '📋 Copy Code'}
+              </button>
+            </div>
+            <div className="room-status-section">
+              <span className={`status-dot ${isOpponentConnected ? 'connected' : 'waiting'}`} />
+              <span className="status-text">
+                {isOpponentConnected 
+                  ? `Connected vs ${myPlayer === 'X' ? (roomInfo?.player_o || 'Player O') : (roomInfo?.player_x || 'Player X')}`
+                  : 'Waiting for opponent to join...'
+                }
+              </span>
+            </div>
+          </div>
+        )}
 
         <GameStatus
           gameState={displayedState}

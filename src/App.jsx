@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 const StartMenu     = lazy(() => import('./components/StartMenu'))
 const GameContainer = lazy(() => import('./components/GameContainer'))
 import { SupabaseProvider } from './contexts/SupabaseContext'
@@ -14,6 +14,15 @@ function App() {
   const [playerXTime,   setPlayerXTime]   = useState(DEFAULT_TIME)
   const [playerOTime,   setPlayerOTime]   = useState(DEFAULT_TIME)
   const [appClass,      setAppClass]      = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const codeFromUrl = params.get('room') || params.get('code')
+    if (codeFromUrl) {
+      setGameCode(codeFromUrl.toUpperCase())
+      setGameMode('online')
+    }
+  }, [])
 
   const navigateTo = (targetMode) => {
     setAppClass('fade-out')

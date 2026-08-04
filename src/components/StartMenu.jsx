@@ -91,7 +91,11 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
       onGameModeSelect('online')
     } catch (err) {
       console.error('Error joining game:', err)
-      setJoinError('Game room not found!')
+      if (!supabase) {
+        setJoinError(`Room "${code}" not found! In local mode (no Supabase), open a 2nd tab in the same browser window where the room was created.`)
+      } else {
+        setJoinError(`Room "${code}" not found. Check the code and try again.`)
+      }
     }
   }
 
@@ -174,6 +178,10 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
       {/* ── Online options panel ── */}
       {showOnlineOptions && (
         <div className="online-options">
+          <div className="multiplayer-mode-badge">
+            {supabase ? '🌐 Cloud Online Mode' : '⚡ Local Multi-Tab Mode'}
+          </div>
+
           <input
             type="text"
             className="display-name-input"

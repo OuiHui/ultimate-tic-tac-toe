@@ -189,3 +189,112 @@
     filter: blur(10px);
   }
 }
+
+/* Online Room Banner */
+.online-room-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(10, 15, 30, 0.75);
+  border: 1.5px solid rgba(0, 200, 255, 0.35);
+  border-radius: 14px;
+  padding: 10px 18px;
+  margin: 0 auto 1.2rem auto;
+  max-width: 650px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 200, 255, 0.05);
+}
+
+.room-code-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Orbitron', monospace;
+}
+
+.room-code-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.room-code-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #00c8ff;
+  letter-spacing: 0.15em;
+  background: rgba(0, 200, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px dashed rgba(0, 200, 255, 0.5);
+  text-shadow: 0 0 8px rgba(0, 200, 255, 0.5);
+  user-select: all;
+}
+
+.copy-code-btn {
+  background: rgba(0, 200, 255, 0.15);
+  color: #00c8ff;
+  border: 1px solid rgba(0, 200, 255, 0.4);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'Orbitron', monospace;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.copy-code-btn:hover {
+  background: rgba(0, 200, 255, 0.3);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.copy-code-btn.copied {
+  background: rgba(46, 204, 113, 0.25);
+  color: #2ecc71;
+  border-color: rgba(46, 204, 113, 0.6);
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
+.room-status-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-family: 'Orbitron', monospace;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-dot.waiting {
+  background: #f1c40f;
+  box-shadow: 0 0 8px #f1c40f;
+  animation: pulseWaiting 1.5s infinite alternate;
+}
+
+.status-dot.connected {
+  background: #2ecc71;
+  box-shadow: 0 0 8px #2ecc71;
+}
+
+.status-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+}
+
+@keyframes pulseWaiting {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
+

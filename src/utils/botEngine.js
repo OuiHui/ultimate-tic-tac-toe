@@ -3,7 +3,7 @@
 
 import { evaluatePosition } from './evaluator.js'
 
-import { WIN_PATTERNS } from './constants.js'
+import { WIN_PATTERNS, POSITION_WEIGHTS } from './constants.js'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function checkWinner(cells) {

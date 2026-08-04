@@ -6,6 +6,10 @@ const SupabaseContext = createContext()
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+const supabaseClient = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
+
 // Helper to get or create persistent unique client ID
 export function getPlayerId() {
   let id = sessionStorage.getItem('ttt-player-id')
@@ -19,11 +23,7 @@ export function getPlayerId() {
 }
 
 export function SupabaseProvider({ children }) {
-  const [supabase] = useState(() => 
-    supabaseUrl && supabaseAnonKey 
-      ? createClient(supabaseUrl, supabaseAnonKey)
-      : null
-  )
+  const supabase = supabaseClient
 
   useEffect(() => {
     if (!supabase) {
@@ -61,7 +61,7 @@ function generateGameCode() {
 
 // Create a new game room
 async function createRoom(supabase) {
-  const code = generateGameCode()
+  const code = generateGameCode().toUpperCase()
   const now = new Date().toISOString()
   
   const initialState = {
@@ -109,7 +109,9 @@ async function createRoom(supabase) {
           created_at: now,
           updated_at: now
         })
-      if (error) console.warn('Supabase insert warning:', error.message)
+      if (error) {
+        console.warn('Supabase insert warning:', error.message)
+      }
     } catch (err) {
       console.warn('Supabase createRoom failed, relying on local broadcast:', err)
     }
@@ -119,7 +121,10 @@ async function createRoom(supabase) {
 }
 
 // Join an existing game room
-async function joinRoom(supabase, code) {
+async function joinRoom(supabase, rawCode) {
+  if (!rawCode) throw new Error('Game room not found')
+  const code = rawCode.trim().toUpperCase()
+
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -237,8 +242,14 @@ function subscribeToGame(supabase, code, callback) {
 
   // Supabase subscription
   if (supabase) {
+    const channelName = `game-${code}`
+    const existingChannel = supabase.getChannels?.().find(ch => ch.topic === `realtime:${channelName}`)
+    if (existingChannel) {
+      supabase.removeChannel(existingChannel)
+    }
+
     supabaseChannel = supabase
-      .channel(`game-${code}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
