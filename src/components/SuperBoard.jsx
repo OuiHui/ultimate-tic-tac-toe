@@ -9,10 +9,12 @@ function SuperBoard({
   gameWinner,
   currentPlayer,
   onCellClick,
+  onCellContextMenu,
   isMyTurn,
   hintMoves = [],
   playedMove = null,
   recommendedMove = null,
+  markedCells = {},
 }) {
   const containerClass = useMemo(() => {
     if (gameOver) {
@@ -48,16 +50,19 @@ function SuperBoard({
             }
             winner={wonBoards[boardIndex]}
             onCellClick={onCellClick}
+            onCellContextMenu={onCellContextMenu}
             isMyTurn={isMyTurn}
             currentPlayer={currentPlayer}
             hintCellIndices={hintCellIndices}
             playedCellIndex={playedCellIndex}
             bestCellIndex={bestCellIndex}
+            markedCells={markedCells}
           />
         )
       })}
     </div>
   )
 }
+
 
 export default React.memo(SuperBoard)

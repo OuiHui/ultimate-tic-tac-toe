@@ -237,8 +237,8 @@ export function getBestMoveScore(gameState) {
   transpositionTable.clear()
   const startTime = Date.now()
   let bestScore = 0
-  for (let depth = 1; depth <= 12; depth++) {
-    if (Date.now() - startTime > 150 && depth > 4) break
+  for (let depth = 1; depth <= 6; depth++) {
+    if (Date.now() - startTime > 20) break
     const score = minimax(gameState, depth, -Infinity, Infinity)
     bestScore = score
     if (Math.abs(score) >= 100) break
@@ -246,7 +246,8 @@ export function getBestMoveScore(gameState) {
   return bestScore
 }
 
-export function evaluateAllMoves(gameState, difficulty = 'hard', botPlayer) {
+export function evaluateAllMoves(gameState, difficulty = 'medium', botPlayer) {
+
   transpositionTable.clear()
   const moves = getLegalMoves(gameState)
   if (!moves.length) return []

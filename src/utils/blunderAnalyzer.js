@@ -19,11 +19,12 @@ function getPlayerScore(gameState, player) {
  * @param {Object} nextState - Game state after move was made
  * @returns {Object} Analysis result containing classification, evalDelta, and bestMove
  */
-export function analyzeMove(prevState, move, nextState, difficulty = 'hard') {
+export function analyzeMove(prevState, move, nextState, difficulty = 'medium') {
   const player = prevState.currentPlayer
 
   // Evaluate legal moves at state before move was made using engine search aligned with hint depth
   const moveEvals = evaluateAllMoves(prevState, difficulty, player)
+
   if (!moveEvals || moveEvals.length === 0) {
     const scoreAfter = getPlayerScore(nextState, player)
     return {

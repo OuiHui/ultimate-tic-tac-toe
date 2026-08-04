@@ -59,6 +59,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   const [hintMoves, setHintMoves] = useState([])
   const [isHinting, setIsHinting] = useState(false)
   const [evalScore, setEvalScore] = useState(0)
+  const [markedCells, setMarkedCells] = useState({})
 
   // ── 3. Refs ────────────────────────────────────────────────────────────────
   const evalWorkerRef = useRef(null)
@@ -95,6 +96,27 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   }
 
   // ── 4. Callbacks ───────────────────────────────────────────────────────────
+  const handleCellContextMenu = useCallback((boardIndex, cellIndex) => {
+    const key = `${boardIndex}-${cellIndex}`
+    const activeColor = gameMode === 'online'
+      ? (myPlayer === 'O' ? 'O' : 'X')
+      : (gameMode === 'bot' ? playerColor : gameState.currentPlayer)
+
+    setMarkedCells(prev => {
+      const next = { ...prev }
+      if (next[key]) {
+        delete next[key]
+      } else {
+        next[key] = activeColor
+      }
+      return next
+    })
+  }, [gameMode, myPlayer, playerColor, gameState.currentPlayer])
+
+  const handleClearMarks = useCallback(() => {
+    setMarkedCells({})
+  }, [])
+
   const handleMove = useCallback(async (boardIndex, cellIndex) => {
     if (gameMode === 'online') {
       if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
@@ -117,6 +139,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   const handleReset = useCallback(async () => {
     cancelThink()
     setHintMoves([])
+    setMarkedCells({})
     const newState = resetGame()
     if (gameMode === 'online') {
       try {
@@ -126,6 +149,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       }
     }
   }, [cancelThink, gameMode, supabase, gameCode, resetGame, makeMoveSupabase, myPlayer])
+
 
   const handleBackToMenu = useCallback(() => {
     cancelThink()
@@ -184,15 +208,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       return () => {
         active = false
         worker.removeEventListener('message', handler)
-        worker.terminate()
-        try {
-          evalWorkerRef.current = new Worker(
-            new URL('../utils/botWorker.js', import.meta.url),
-            { type: 'module' }
-          )
-        } catch (_) {
-          evalWorkerRef.current = null
-        }
       }
     } else {
       import('../utils/botEngine.js').then(({ getBestMoveScore }) => {
@@ -200,6 +215,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       })
     }
   }, [displayedState, gameMode])
+
 
   // Online multiplayer setup
   useEffect(() => {
@@ -431,10 +447,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
             gameWinner={displayedState.gameWinner}
             currentPlayer={displayedState.currentPlayer}
             onCellClick={handleMove}
+            onCellContextMenu={handleCellContextMenu}
             isMyTurn={isMyTurn}
             hintMoves={hintMoves}
             playedMove={playedMove}
             recommendedMove={recommendedMove}
+            markedCells={markedCells}
           />
         </div>
 
@@ -463,11 +481,22 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
               </label>
             </div>
           )}
+          {Object.keys(markedCells).length > 0 && (
+            <button className="button" onClick={handleClearMarks} title="Clear all marked squares">
+              <svg viewBox="0 0 24 24" width="14" height="14" style={{ marginRight: 6, verticalAlign: 'middle', display: 'inline-block' }}>
+                <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="2" fill="none" />
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              Clear Marks
+            </button>
+          )}
+
           {showUndo && (
             <button className="button button-undo" onClick={handleUndo} title="Undo last move">
               ↩ Undo
             </button>
           )}
+
           <button className="button" onClick={handleReset}>New Game</button>
           <button className="button" onClick={handleBackToMenu}>Back to Menu</button>
         </div>

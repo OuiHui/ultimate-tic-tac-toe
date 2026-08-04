@@ -171,4 +171,63 @@
   100% { transform: scale(1.03); border-color: rgba(0, 230, 150, 0.95); }
 }
 
+/* ── Marked No-Go Indicator ────────────────────────────────────────── */
+
+.cell.marked-no-go.marked-x {
+  border-color: rgba(255, 50, 80, 0.45) !important;
+  background: rgba(255, 50, 80, 0.06) !important;
+  box-shadow:
+    0 0 8px rgba(255, 50, 80, 0.25),
+    inset 0 0 6px rgba(255, 50, 80, 0.08) !important;
+}
+
+.cell.marked-no-go.marked-o {
+  border-color: rgba(0, 200, 255, 0.45) !important;
+  background: rgba(0, 200, 255, 0.06) !important;
+  box-shadow:
+    0 0 8px rgba(0, 200, 255, 0.25),
+    inset 0 0 6px rgba(0, 200, 255, 0.08) !important;
+}
+
+.no-go-indicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  animation: noGoBreath 2s ease-in-out infinite alternate;
+}
+
+.no-go-svg {
+  width: 22px;
+  height: 22px;
+  opacity: 0.55;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.no-go-svg.x-color {
+  color: #ff3250;
+  filter: drop-shadow(0 0 4px rgba(255, 50, 80, 0.7)) drop-shadow(0 0 10px rgba(255, 50, 80, 0.4));
+}
+
+.no-go-svg.o-color {
+  color: #00c8ff;
+  filter: drop-shadow(0 0 4px rgba(0, 200, 255, 0.7)) drop-shadow(0 0 10px rgba(0, 200, 255, 0.4));
+}
+
+@keyframes noGoBreath {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1.04);
+  }
+}
+
+
+
 

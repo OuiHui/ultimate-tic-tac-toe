@@ -7,11 +7,13 @@ function SmallBoard({
   isActive,
   winner,
   onCellClick,
+  onCellContextMenu,
   isMyTurn,
   currentPlayer,
   hintCellIndices = [],
   playedCellIndex = null,
   bestCellIndex = null,
+  markedCells = {},
 }) {
   const boardClasses = useMemo(() => {
     const classes = ['small-board']
@@ -32,6 +34,13 @@ function SmallBoard({
     onCellClick(boardIndex, cellIndex)
   }, [onCellClick, boardIndex])
 
+  const handleContextMenu = useCallback((e, cellIndex) => {
+    e.preventDefault()
+    if (onCellContextMenu) {
+      onCellContextMenu(boardIndex, cellIndex)
+    }
+  }, [onCellContextMenu, boardIndex])
+
   return (
     <div className={boardClasses.join(' ')}>
       <div className="board-grid">
@@ -40,11 +49,13 @@ function SmallBoard({
             key={cellIndex}
             value={cell}
             onClick={() => handleClick(cellIndex)}
+            onContextMenu={(e) => handleContextMenu(e, cellIndex)}
             disabled={!isActive || winner || cell || !isMyTurn}
             currentPlayer={currentPlayer}
             isHint={hintCellIndices.includes(cellIndex)}
             isPlayed={playedCellIndex === cellIndex}
             isBestMove={bestCellIndex === cellIndex}
+            markedBy={markedCells[`${boardIndex}-${cellIndex}`] || null}
           />
         ))}
       </div>
@@ -57,5 +68,6 @@ function SmallBoard({
     </div>
   )
 }
+
 
 export default React.memo(SmallBoard)
