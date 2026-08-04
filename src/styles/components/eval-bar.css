@@ -121,13 +121,24 @@
 /* Numeric score */
 .eval-bar-score {
   font-family: 'Orbitron', monospace;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: rgba(255, 255, 255, 0.9);
   text-align: center;
   letter-spacing: 0.04em;
-  min-height: 0.8em;
-  flex-shrink: 0;
+  line-height: 1;
+  margin: 2px 0;
+}
+
+.eval-bar-score-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  font-size: 1rem;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
 }
 
 /* ── Bot thinking indicator ── */

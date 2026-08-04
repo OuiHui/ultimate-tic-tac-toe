@@ -168,35 +168,24 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     localStorage.setItem('ttt-hint-mode', hintMode)
   }, [hintMode])
 
-  // Worker initialization
-  useEffect(() => {
-    try {
-      evalWorkerRef.current = new Worker(
-        new URL('../utils/botWorker.js', import.meta.url),
-        { type: 'module' }
-      )
-    } catch (_) {
-      evalWorkerRef.current = null
-    }
-    return () => {
-      evalWorkerRef.current?.terminate()
-      evalWorkerRef.current = null
-    }
-  }, [])
-
   // Asynchronous evaluation effect for displayed state
   useEffect(() => {
     if (gameMode === 'online') return
-    if (displayedState.gameOver) {
-      setEvalScore(evaluatePosition(displayedState))
-      return
-    }
+
+    // 0ms instant baseline update using fast static evaluator
+    setEvalScore(evaluatePosition(displayedState))
+
+    if (displayedState.gameOver) return
 
     const snapshot = { ...displayedState }
     let active = true
+    let worker = null
 
-    if (evalWorkerRef.current) {
-      const worker = evalWorkerRef.current
+    try {
+      worker = new Worker(
+        new URL('../utils/botWorker.js', import.meta.url),
+        { type: 'module' }
+      )
       const handler = (e) => {
         if (e.data.type === 'EVAL_UPDATE' && active) {
           setEvalScore(e.data.score ?? 0)
@@ -204,15 +193,17 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       }
       worker.addEventListener('message', handler)
       worker.postMessage({ type: 'EVALUATE', gameState: snapshot })
-
-      return () => {
-        active = false
-        worker.removeEventListener('message', handler)
-      }
-    } else {
+    } catch (_) {
       import('../utils/botEngine.js').then(({ getBestMoveScore }) => {
         if (active) setEvalScore(getBestMoveScore(snapshot))
       })
+    }
+
+    return () => {
+      active = false
+      if (worker) {
+        worker.terminate()
+      }
     }
   }, [displayedState, gameMode])
 

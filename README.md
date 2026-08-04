@@ -171,12 +171,15 @@ $$\text{Total Score} = S_{\text{macro}} + S_{\text{boards}} + S_{\text{cells}} +
 4. **Active Board Strategic Advantage ($S_{\text{active}}$)**:
    Grants a $+15$ point advantage when receiving a free move (`activeBoard === null`), or evaluates the tactical advantage of sending the opponent to a specific board.
 
-### Multithreaded Web Worker Execution
+### Multithreaded Web Worker Execution & Real-time Evaluation
 
-To keep the UI smooth at 60 FPS during deep Minimax computations:
-- [`useBot.js`](src/hooks/useBot.js) instantiates a Web Worker (`botWorker.js`).
-- State snapshots are posted to the worker; when search completes, the worker sends back the computed move message.
-- **Streaming Live Evaluation Bar**: `botWorker.js` continuously executes iterative deepening ($1 \to 12$) and streams live evaluation updates (`EVAL_UPDATE`) to the [`EvalBar.jsx`](src/components/EvalBar.jsx) UI element.
+To keep the UI smooth at 60 FPS during deep Minimax computations and streaming position analysis:
+- **Dedicated Bot Worker**: [`useBot.js`](src/hooks/useBot.js) manages a Web Worker (`botWorker.js`) for AI turn calculations off the main thread.
+- **Zero-Latency Static Baseline**: When `displayedState` changes (e.g. playing a move or navigating history), [`GameContainer.jsx`](src/components/GameContainer.jsx) synchronously calculates a fast static evaluation score via `evaluatePosition()`. This updates [`EvalBar.jsx`](src/components/EvalBar.jsx) instantly with $0\text{ms}$ lag.
+- **Worker Cancellation & Lifecycle**: To prevent event loop queue congestion during rapid move history scrubbing, [`GameContainer.jsx`](src/components/GameContainer.jsx) instantiates a fresh worker per state change and invokes `worker.terminate()` on cleanup. This immediately aborts inflight $4.5\text{s}$ search loops from previous states, eliminating queue backlog delays.
+- **Streaming Live Evaluation Bar**: `botWorker.js` continuously executes iterative deepening ($1 \to 12$) starting at depth 1 (`MIN_DISPLAY_DEPTH = 1`) and streams live evaluation updates (`EVAL_UPDATE`) to [`EvalBar.jsx`](src/components/EvalBar.jsx).
+- **Instant Terminal Win Detection**: If an exact terminal win/loss ($\ge 100$) is detected at any search depth, an `EVAL_UPDATE` is posted immediately before terminating search early.
+- **Dynamic Score Placement**: Numerical scores in [`EvalBar.jsx`](src/components/EvalBar.jsx) dynamically anchor to the leading player's indicator (top for $X$, bottom for $O$, center for equal) to eliminate visual ambiguity.
 
 ### Blunder Analysis & Move Classification
 

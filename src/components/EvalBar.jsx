@@ -7,22 +7,19 @@ import React, { useMemo } from 'react'
  *   score: -100 (O dominates) … 0 (equal) … +100 (X dominates)
  */
 function EvalBar({ score, playerColor }) {
-  const xPct = useMemo(() => {
-    const clamped = Math.max(-100, Math.min(100, score ?? 0))
-    return ((clamped + 100) / 200) * 100
-  }, [score])
+  const rounded = Math.round(score ?? 0)
+  const clamped = Math.max(-100, Math.min(100, score ?? 0))
+  const xPct = ((clamped + 100) / 200) * 100
 
   const scoreLabel = useMemo(() => {
-    const rounded = Math.round(score ?? 0)
     if (Math.abs(rounded) < 1) return '='
     return (rounded > 0 ? '+' : '') + rounded
-  }, [score])
+  }, [rounded])
 
   const scoreColor = useMemo(() => {
-    const rounded = Math.round(score ?? 0)
-    if (Math.abs(rounded) < 1) return 'inherit'
+    if (Math.abs(rounded) < 1) return 'rgba(255, 255, 255, 0.7)'
     return rounded > 0 ? '#ff3250' : '#00c8ff'
-  }, [score])
+  }, [rounded])
 
   const humanIsX = playerColor === 'X'
 
@@ -31,6 +28,11 @@ function EvalBar({ score, playerColor }) {
       <div className="eval-bar-top-label">
         <span className="eval-bar-player-label eval-bar-x-label">X</span>
         {humanIsX && <span className="eval-bar-you-tag">you</span>}
+        {rounded > 0 && (
+          <span className="eval-bar-score" style={{ color: scoreColor }}>
+            {scoreLabel}
+          </span>
+        )}
       </div>
 
       <div className="eval-bar">
@@ -40,11 +42,19 @@ function EvalBar({ score, playerColor }) {
         />
         <div className="eval-bar-divider" style={{ top: `${xPct}%` }} />
         <div className="eval-bar-o-fill" />
+        {rounded === 0 && (
+          <span className="eval-bar-score eval-bar-score-center" style={{ color: scoreColor }}>
+            {scoreLabel}
+          </span>
+        )}
       </div>
 
-      <div className="eval-bar-score" style={{ color: scoreColor }}>{scoreLabel}</div>
-
       <div className="eval-bar-bottom-label">
+        {rounded < 0 && (
+          <span className="eval-bar-score" style={{ color: scoreColor }}>
+            {scoreLabel}
+          </span>
+        )}
         {!humanIsX && <span className="eval-bar-you-tag">you</span>}
         <span className="eval-bar-player-label eval-bar-o-label">O</span>
       </div>

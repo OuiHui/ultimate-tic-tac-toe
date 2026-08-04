@@ -259,14 +259,15 @@ function getBestMoves(gameState, difficulty, botPlayer) {
 }
 
 // ── Streaming iterative-deepening evaluation (Lichess-style) ─────────────────
-// Posts EVAL_UPDATE after each depth once >= MIN_DISPLAY_DEPTH is reached.
-// The bar holds its previous value until the first trustworthy result arrives.
-const MIN_DISPLAY_DEPTH = 4
+// Posts EVAL_UPDATE after each depth starting at depth 1, and immediately for terminal states.
+const MIN_DISPLAY_DEPTH = 1
 const MAX_EVAL_DEPTH = 12
 const EVAL_TIME_LIMIT_MS = 4500
 
 function runStreamingEval(gameState) {
-  transpositionTable.clear()
+  if (transpositionTable.size > 50000) {
+    transpositionTable.clear()
+  }
   const startTime = Date.now()
 
   for (let depth = 1; depth <= MAX_EVAL_DEPTH; depth++) {
@@ -274,7 +275,7 @@ function runStreamingEval(gameState) {
 
     const score = minimax(gameState, depth, -Infinity, Infinity)
 
-    if (depth >= MIN_DISPLAY_DEPTH) {
+    if (depth >= MIN_DISPLAY_DEPTH || Math.abs(score) >= 100) {
       self.postMessage({ type: 'EVAL_UPDATE', score, depth })
     }
 
