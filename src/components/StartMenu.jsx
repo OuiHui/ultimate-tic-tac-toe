@@ -33,7 +33,7 @@ function TimerPresets({ selected, onChange }) {
 function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLocalGame }) {
   // ── Online options ────────────────────────────────────────────
   const [showOnlineOptions, setShowOnlineOptions] = useState(false)
-  const [displayName, setDisplayName]   = useState('')
+  const [displayName, setDisplayName]   = useState(() => localStorage.getItem('displayName') || '')
   const [joinCode, setJoinCode]         = useState('')
   const [joinError, setJoinError]       = useState('')
   const [createdGameCode, setCreatedGameCode] = useState('')
@@ -72,9 +72,14 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
   const handleOnlineMultiplayer = () => setShowOnlineOptions(true)
 
   const handleCreateGame = async () => {
+    const trimmedName = displayName.trim()
+    if (trimmedName) {
+      localStorage.setItem('displayName', trimmedName)
+    } else {
+      localStorage.removeItem('displayName')
+    }
     const defaultName = onlineColor === 'X' ? 'Player X' : 'Player O'
-    const name = displayName.trim() || defaultName
-    if (displayName.trim()) localStorage.setItem('displayName', displayName.trim())
+    const name = trimmedName || defaultName
     try {
       const myId = getPlayerId()
       const code = await createRoom(supabase, name, myId, onlineTimer, onlineColor)
@@ -89,7 +94,12 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
 
   const handleJoinGame = async () => {
     if (!joinCode.trim()) return
-    if (displayName.trim()) localStorage.setItem('displayName', displayName.trim())
+    const trimmedName = displayName.trim()
+    if (trimmedName) {
+      localStorage.setItem('displayName', trimmedName)
+    } else {
+      localStorage.removeItem('displayName')
+    }
     const code = joinCode.trim().toUpperCase()
     try {
       await joinRoom(supabase, code)

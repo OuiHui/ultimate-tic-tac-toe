@@ -39,6 +39,7 @@ export function SupabaseProvider({ children }) {
     claimTimeout,
     subscribeToGame,
     unsubscribeFromGame,
+    notifyPlayerLeft,
     getPlayerId,
   }
 
@@ -242,6 +243,30 @@ async function claimTimeout(supabase, code, timedOutPlayer) {
   }
 }
 
+// Notify opponent when a player leaves the room
+async function notifyPlayerLeft(supabase, code, playerRole) {
+  if (!code || !playerRole) return
+
+  // Broadcast locally across tabs
+  try {
+    const bc = new BroadcastChannel(`ttt-game-${code}`)
+    bc.postMessage({ type: 'PLAYER_LEFT', player: playerRole })
+    bc.close()
+  } catch (_) {}
+
+  // Broadcast via Supabase
+  if (supabase) {
+    try {
+      const channel = supabase.channel(`game-${code}`)
+      await channel.send({
+        type: 'broadcast',
+        event: 'PLAYER_LEFT',
+        payload: { player: playerRole }
+      })
+    } catch (_) {}
+  }
+}
+
 // Subscribe to game updates
 function subscribeToGame(supabase, code, callback) {
   let supabaseChannel = null
@@ -281,7 +306,21 @@ function subscribeToGame(supabase, code, callback) {
           callback(payload.new)
         }
       )
-      .subscribe()
+      .on('broadcast', { event: 'PLAYER_LEFT' }, (payload) => {
+        if (payload?.payload) {
+          callback({ type: 'PLAYER_LEFT', ...payload.payload })
+        }
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        callback({ type: 'PRESENCE_LEAVE', leftPresences })
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED' && supabaseChannel) {
+          try {
+            supabaseChannel.track({ online_at: new Date().toISOString(), player_id: getPlayerId() })
+          } catch (_) {}
+        }
+      })
   }
 
   return { supabaseChannel, bc }

@@ -108,7 +108,7 @@
 
 .timer.active {
   animation: activePulse 1s ease-in-out infinite;
-  border-width: 3px;
+  border-width: 2px;
   transform: scale(1.02);
 }
 

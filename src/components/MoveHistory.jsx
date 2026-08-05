@@ -41,7 +41,7 @@ function MoveHistory({
   const [notationStyle, setNotationStyle] = useState(() => {
     return localStorage.getItem('ttt_notation_style') || 'full'
   })
-  const listEndRef = useRef(null)
+  const moveListContainerRef = useRef(null)
   const dropdownRef = useRef(null)
 
   const isLive = viewingIndex === null || viewingIndex === moveHistory.length - 1
@@ -100,10 +100,12 @@ function MoveHistory({
     triggerToast('Downloaded Text File! 💾')
   }
 
-  // Auto-scroll move list to bottom when new moves arrive (only if live)
   useEffect(() => {
-    if (isLive && listEndRef.current) {
-      listEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (isLive && moveListContainerRef.current) {
+      moveListContainerRef.current.scrollTo({
+        top: moveListContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   }, [moveHistory.length, isLive])
 
@@ -321,7 +323,7 @@ function MoveHistory({
           </div>
 
           {/* Move List */}
-          <div className="move-list-container">
+          <div className="move-list-container" ref={moveListContainerRef}>
             {moveHistory.length === 0 ? (
               <div className="empty-history">
                 <span>No moves played yet</span>
@@ -352,7 +354,6 @@ function MoveHistory({
                     </div>
                   )
                 })}
-                <div ref={listEndRef} />
               </div>
             )}
           </div>

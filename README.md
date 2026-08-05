@@ -119,7 +119,7 @@ Time management is isolated in [`timerStore.js`](src/stores/timerStore.js):
 
 The game records every move in an array of history objects containing:
 - Move index, player, `boardIndex`, `cellIndex`.
-- `prevState` and `stateAfter`.
+- `prevState` and `stateAfter` (sanitized flat board state snapshots excluding nested move history arrays to optimize memory usage and network serialization).
 - Real-time engine move analysis.
 
 Players can use navigation controls to step through past moves or branch off from any prior state into a new move line.
@@ -265,8 +265,9 @@ The app uses a hybrid synchronization model:
   ```
 - **State Broadcast Payload**: When a valid move occurs:
   1. The move is applied to local state via `useSuperTicTacToe`.
-  2. The updated state payload (including full `moveHistory`) is transmitted to Supabase / BroadcastChannel.
-  3. Receiving clients invoke `syncRemoteState(remoteState)` to reconcile their board rendering, move history, and timer sync deterministically.
+  2. The updated state payload is sanitized to ensure move history snapshots exclude nested histories, maintaining a lean payload size (under ~50KB for a full match).
+  3. The sanitized payload is transmitted to Supabase / BroadcastChannel.
+  4. Receiving clients invoke `syncRemoteState(remoteState)` to reconcile state. Incoming remote updates with fewer recorded moves than the current local state are automatically ignored as stale sequence updates, preventing out-of-order state overwrites.
 
 ---
 

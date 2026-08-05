@@ -12,12 +12,12 @@ function EvalBar({ score, playerColor }) {
   const xPct = ((clamped + 100) / 200) * 100
 
   const scoreLabel = useMemo(() => {
-    if (Math.abs(rounded) < 1) return '='
+    if (Math.abs(rounded) < 1) return '0'
     return (rounded > 0 ? '+' : '') + rounded
   }, [rounded])
 
   const scoreColor = useMemo(() => {
-    if (Math.abs(rounded) < 1) return 'rgba(255, 255, 255, 0.7)'
+    if (Math.abs(rounded) < 1) return 'rgba(255, 255, 255, 0.85)'
     return rounded > 0 ? '#ff3250' : '#00c8ff'
   }, [rounded])
 
@@ -42,15 +42,10 @@ function EvalBar({ score, playerColor }) {
         />
         <div className="eval-bar-divider" style={{ top: `${xPct}%` }} />
         <div className="eval-bar-o-fill" />
-        {rounded === 0 && (
-          <span className="eval-bar-score eval-bar-score-center" style={{ color: scoreColor }}>
-            {scoreLabel}
-          </span>
-        )}
       </div>
 
       <div className="eval-bar-bottom-label">
-        {rounded < 0 && (
+        {rounded <= 0 && (
           <span className="eval-bar-score" style={{ color: scoreColor }}>
             {scoreLabel}
           </span>

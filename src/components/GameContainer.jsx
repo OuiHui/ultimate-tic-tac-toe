@@ -18,6 +18,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     makeMove: makeMoveSupabase,
     subscribeToGame,
     unsubscribeFromGame,
+    notifyPlayerLeft,
     getPlayerId,
   } = useSupabase()
 
@@ -53,6 +54,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   // ── 2. Local State Hooks ───────────────────────────────────────────────────
   const [myPlayer, setMyPlayer] = useState(null)
   const [roomInfo, setRoomInfo] = useState(null)
+  const [opponentLeft, setOpponentLeft] = useState(false)
   const [copied, setCopied] = useState(false)
   const [supabaseChannel, setSupabaseChannel] = useState(null)
   const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
@@ -154,9 +156,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   const handleBackToMenu = useCallback(() => {
     cancelThink()
+    if (gameMode === 'online' && gameCode && myPlayer) {
+      notifyPlayerLeft(supabase, gameCode, myPlayer)
+    }
     if (supabaseChannel) unsubscribeFromGame(supabaseChannel)
     onBackToMenu()
-  }, [cancelThink, supabaseChannel, unsubscribeFromGame, onBackToMenu])
+  }, [cancelThink, gameMode, gameCode, myPlayer, supabase, supabaseChannel, unsubscribeFromGame, onBackToMenu])
 
   const handleUndo = useCallback(() => {
     cancelThink()
@@ -168,6 +173,18 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   useEffect(() => {
     localStorage.setItem('ttt-hint-mode', hintMode)
   }, [hintMode])
+
+  // Notify opponent on window/tab closure
+  useEffect(() => {
+    if (gameMode !== 'online' || !gameCode || !myPlayer) return
+    const handleBeforeUnload = () => {
+      notifyPlayerLeft(supabase, gameCode, myPlayer)
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [gameMode, gameCode, myPlayer, supabase])
 
   // Asynchronous evaluation effect for displayed state
   useEffect(() => {
@@ -218,7 +235,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   }, [gameMode, supabase, gameCode])
 
   const setupMultiplayer = async () => {
-    const displayName = localStorage.getItem('displayName') || 'Anonymous'
+    const rawStoredName = (localStorage.getItem('displayName') || '').trim()
     const myId = getPlayerId()
 
     try {
@@ -236,10 +253,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
           assignedPlayer = 'O'
         } else if (!room.player_x && !room.player_x_id) {
           assignedPlayer = 'X'
-          updateData = { player_x: displayName, player_x_id: myId }
+          const nameToSet = rawStoredName || 'Player X'
+          updateData = { player_x: nameToSet, player_x_id: myId }
         } else if (!room.player_o && !room.player_o_id) {
           assignedPlayer = 'O'
-          updateData = { player_o: displayName, player_o_id: myId }
+          const nameToSet = rawStoredName || 'Player O'
+          updateData = { player_o: nameToSet, player_o_id: myId }
         } else {
           assignedPlayer = 'spectator'
         }
@@ -271,6 +290,16 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
       const subscription = subscribeToGame(supabase, gameCode, (updated) => {
         if (updated) {
+          if (updated.type === 'PLAYER_LEFT') {
+            if (updated.player && updated.player !== myPlayer && updated.player !== 'spectator') {
+              setOpponentLeft(true)
+            }
+            return
+          }
+          if (updated.type === 'PRESENCE_LEAVE') {
+            setOpponentLeft(true)
+            return
+          }
           if (updated.state) {
             syncRemoteState(updated.state, updated.state.moveHistory)
           }
@@ -397,14 +426,22 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
               </button>
             </div>
             <div className="room-status-section">
-              <span className={`status-dot ${isOpponentConnected ? 'connected' : 'waiting'}`} />
+              <span className={`status-dot ${opponentLeft ? 'left' : (isOpponentConnected ? 'connected' : 'waiting')}`} />
               <span className="status-text">
-                {isOpponentConnected 
-                  ? `${roomInfo?.player_x || 'Player X'} (X) vs ${roomInfo?.player_o || 'Player O'} (O)`
-                  : `${myPlayer === 'X' ? (roomInfo?.player_x || 'Player X') : (roomInfo?.player_o || 'Player O')} (${myPlayer || 'X'}) vs Waiting for opponent...`
+                {opponentLeft
+                  ? `Opponent (${myPlayer === 'X' ? 'O' : 'X'}) left the match`
+                  : isOpponentConnected 
+                    ? `${roomInfo?.player_x || 'Player X'} (X) vs ${roomInfo?.player_o || 'Player O'} (O)`
+                    : `${myPlayer === 'X' ? (roomInfo?.player_x || 'Player X') : (roomInfo?.player_o || 'Player O')} (${myPlayer || 'X'}) vs Waiting for opponent...`
                 }
               </span>
             </div>
+          </div>
+        )}
+
+        {gameMode === 'online' && opponentLeft && !displayedState.gameOver && (
+          <div className="opponent-left-banner">
+            ⚠️ Opponent left the match midgame. You win by forfeit!
           </div>
         )}
 
