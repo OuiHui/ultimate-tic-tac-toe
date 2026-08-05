@@ -28,11 +28,6 @@ function EvalBar({ score, playerColor }) {
       <div className="eval-bar-top-label">
         <span className="eval-bar-player-label eval-bar-x-label">X</span>
         {humanIsX && <span className="eval-bar-you-tag">you</span>}
-        {rounded > 0 && (
-          <span className="eval-bar-score" style={{ color: scoreColor }}>
-            {scoreLabel}
-          </span>
-        )}
       </div>
 
       <div className="eval-bar">
@@ -45,11 +40,9 @@ function EvalBar({ score, playerColor }) {
       </div>
 
       <div className="eval-bar-bottom-label">
-        {rounded <= 0 && (
-          <span className="eval-bar-score" style={{ color: scoreColor }}>
-            {scoreLabel}
-          </span>
-        )}
+        <span className="eval-bar-score" style={{ color: scoreColor }}>
+          {scoreLabel}
+        </span>
         {!humanIsX && <span className="eval-bar-you-tag">you</span>}
         <span className="eval-bar-player-label eval-bar-o-label">O</span>
       </div>
