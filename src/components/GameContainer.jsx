@@ -38,7 +38,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     stepToStart,
     stepToLive,
     branchFrom,
-  } = useSuperTicTacToe(gameMode !== 'online', playerXTime, playerOTime)
+  } = useSuperTicTacToe(gameMode !== 'online', playerXTime, playerOTime, playerColor)
 
   const botPlayer = playerColor === 'X' ? 'O' : 'X'
 
@@ -225,28 +225,29 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     try {
       const room = await joinRoom(supabase, gameCode)
       setRoomInfo(room)
-      let assignedPlayer
+      const storedRole = sessionStorage.getItem('super-ttt-player-' + gameCode)
+      let assignedPlayer = storedRole
       let updateData = {}
 
-      // Identify player by unique client ID or available slot
-      if (room.player_x_id === myId || (room.player_x === displayName && !room.player_x_id)) {
-        assignedPlayer = 'X'
-        if (!room.player_x_id) updateData.player_x_id = myId
-      } else if (room.player_o_id === myId || (room.player_o === displayName && !room.player_o_id)) {
-        assignedPlayer = 'O'
-        if (!room.player_o_id) updateData.player_o_id = myId
-      } else if (!room.player_x && !room.player_x_id) {
-        assignedPlayer = 'X'
-        updateData = { player_x: displayName, player_x_id: myId }
-      } else if (!room.player_o && !room.player_o_id) {
-        assignedPlayer = 'O'
-        updateData = { player_o: displayName, player_o_id: myId }
-      } else {
-        assignedPlayer = 'spectator'
+      // Identify player by unique client ID, stored role, or available slot
+      if (!assignedPlayer) {
+        if (room.player_x_id === myId) {
+          assignedPlayer = 'X'
+        } else if (room.player_o_id === myId) {
+          assignedPlayer = 'O'
+        } else if (!room.player_x && !room.player_x_id) {
+          assignedPlayer = 'X'
+          updateData = { player_x: displayName, player_x_id: myId }
+        } else if (!room.player_o && !room.player_o_id) {
+          assignedPlayer = 'O'
+          updateData = { player_o: displayName, player_o_id: myId }
+        } else {
+          assignedPlayer = 'spectator'
+        }
       }
 
       setMyPlayer(assignedPlayer)
-      localStorage.setItem('super-ttt-player-' + gameCode, assignedPlayer)
+      sessionStorage.setItem('super-ttt-player-' + gameCode, assignedPlayer)
 
       if (Object.keys(updateData).length > 0) {
         const updatedRoom = { ...room, ...updateData }

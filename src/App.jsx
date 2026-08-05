@@ -4,7 +4,7 @@ const GameContainer = lazy(() => import('./components/GameContainer'))
 import { SupabaseProvider } from './contexts/SupabaseContext'
 import './styles/index.css'
 
-const DEFAULT_TIME = 300 // 5 minutes in seconds
+const DEFAULT_TIME = 0 // 0 = disabled
 
 function App() {
   const [gameMode,      setGameMode]      = useState('menu')   // 'menu' | 'local' | 'bot' | 'online'
@@ -41,7 +41,8 @@ function App() {
     navigateTo('bot')
   }
 
-  const handleStartLocalGame = (xTime = DEFAULT_TIME, oTime = DEFAULT_TIME) => {
+  const handleStartLocalGame = (xTime = DEFAULT_TIME, oTime = DEFAULT_TIME, startingColor = 'X') => {
+    setPlayerColor(startingColor)
     setPlayerXTime(xTime)
     setPlayerOTime(oTime)
     navigateTo('local')

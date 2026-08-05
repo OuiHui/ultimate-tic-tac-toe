@@ -3,10 +3,10 @@
 // A timer value of 0 means "disabled" — it never counts down.
 
 let subscribers = new Set()
-let state = { x: 300, o: 300 }
+let state = { x: 0, o: 0 }
 let interval = null
 
-export function initTimers(x = 300, o = 300) {
+export function initTimers(x = 0, o = 0) {
   state = { x, o }
   emit()
 }

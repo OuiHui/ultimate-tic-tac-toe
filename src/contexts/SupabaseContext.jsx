@@ -60,9 +60,12 @@ function generateGameCode() {
 }
 
 // Create a new game room
-async function createRoom(supabase) {
+async function createRoom(supabase, hostDisplayName = '', hostPlayerId = null, timerSeconds = 0, hostRole = 'X') {
   const code = generateGameCode().toUpperCase()
   const now = new Date().toISOString()
+  const defaultDefaultName = hostRole === 'X' ? 'Player X' : 'Player O'
+  const name = (hostDisplayName || '').trim() || defaultDefaultName
+  const playerId = hostPlayerId || getPlayerId()
   
   const initialState = {
     boards: Array(9).fill(null).map(() => Array(9).fill('')),
@@ -71,8 +74,8 @@ async function createRoom(supabase) {
     wonBoards: Array(9).fill(''),
     gameWinner: '',
     gameOver: false,
-    playerXTime: 300,
-    playerOTime: 300,
+    playerXTime: timerSeconds,
+    playerOTime: timerSeconds,
     gameStarted: false,
     turnStartTimestamp: now,
     lastMoveTimestamp: now,
@@ -82,10 +85,10 @@ async function createRoom(supabase) {
   const roomData = {
     code,
     state: initialState,
-    player_x: null,
-    player_o: null,
-    player_x_id: null,
-    player_o_id: null,
+    player_x: hostRole === 'X' ? name : null,
+    player_o: hostRole === 'O' ? name : null,
+    player_x_id: hostRole === 'X' ? playerId : null,
+    player_o_id: hostRole === 'O' ? playerId : null,
     created_at: now,
     updated_at: now
   }
@@ -104,8 +107,10 @@ async function createRoom(supabase) {
         .insert({
           code,
           state: initialState,
-          player_x: null,
-          player_o: null,
+          player_x: hostRole === 'X' ? name : null,
+          player_o: hostRole === 'O' ? name : null,
+          player_x_id: hostRole === 'X' ? playerId : null,
+          player_o_id: hostRole === 'O' ? playerId : null,
           created_at: now,
           updated_at: now
         })

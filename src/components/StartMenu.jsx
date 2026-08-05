@@ -9,7 +9,7 @@ const TIMER_PRESETS = [
   { label: '5m',   value: 300  },
   { label: '10m',  value: 600  },
 ]
-const DEFAULT_TIMER = 300 // 5 minutes
+const DEFAULT_TIMER = 0 // Off (disabled) by default
 
 function TimerPresets({ selected, onChange }) {
   return (
@@ -37,6 +37,8 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
   const [joinCode, setJoinCode]         = useState('')
   const [joinError, setJoinError]       = useState('')
   const [createdGameCode, setCreatedGameCode] = useState('')
+  const [onlineTimer, setOnlineTimer]   = useState(DEFAULT_TIMER)
+  const [onlineColor, setOnlineColor]   = useState('X')
 
   // ── AI options ────────────────────────────────────────────────
   const [showAIOptions, setShowAIOptions] = useState(false)
@@ -47,14 +49,15 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
   // ── Local options ─────────────────────────────────────────────
   const [showLocalOptions, setShowLocalOptions] = useState(false)
   const [localTimer, setLocalTimer]             = useState(DEFAULT_TIMER)
+  const [localFirstPlayer, setLocalFirstPlayer] = useState('X')
 
-  const { supabase, createRoom, joinRoom } = useSupabase()
+  const { supabase, createRoom, joinRoom, getPlayerId } = useSupabase()
 
   // ── Local ─────────────────────────────────────────────────────
   const handleLocalGame = () => {
     // If no timer customisation needed, start directly; otherwise show options
     if (onStartLocalGame) {
-      onStartLocalGame(localTimer, localTimer)
+      onStartLocalGame(localTimer, localTimer, localFirstPlayer)
     } else {
       onGameModeSelect('local')
     }
@@ -69,9 +72,12 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
   const handleOnlineMultiplayer = () => setShowOnlineOptions(true)
 
   const handleCreateGame = async () => {
+    const defaultName = onlineColor === 'X' ? 'Player X' : 'Player O'
+    const name = displayName.trim() || defaultName
     if (displayName.trim()) localStorage.setItem('displayName', displayName.trim())
     try {
-      const code = await createRoom(supabase)
+      const myId = getPlayerId()
+      const code = await createRoom(supabase, name, myId, onlineTimer, onlineColor)
       setCreatedGameCode(code)
       onGameCodeSet(code)
       onGameModeSelect('online')
@@ -128,6 +134,24 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
       {showLocalOptions && (
         <div className="ai-options">
           <div className="ai-options-title">Local Play Settings</div>
+
+          <div className="ai-option-group">
+            <div className="ai-option-label">First Move</div>
+            <div className="ai-option-buttons">
+              <button
+                className={`ai-option-btn ${localFirstPlayer === 'X' ? 'selected-x' : ''}`}
+                onClick={() => setLocalFirstPlayer('X')}
+              >
+                X&nbsp;<span style={{ fontSize: '0.6em', opacity: 0.7 }}>(1st)</span>
+              </button>
+              <button
+                className={`ai-option-btn ${localFirstPlayer === 'O' ? 'selected-o' : ''}`}
+                onClick={() => setLocalFirstPlayer('O')}
+              >
+                O&nbsp;<span style={{ fontSize: '0.6em', opacity: 0.7 }}>(1st)</span>
+              </button>
+            </div>
+          </div>
 
           <TimerPresets selected={localTimer} onChange={setLocalTimer} />
 
@@ -190,6 +214,27 @@ function StartMenu({ onGameModeSelect, onGameCodeSet, onStartBotGame, onStartLoc
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
           />
+
+          <div className="ai-option-group">
+            <div className="ai-option-label">Play as</div>
+            <div className="ai-option-buttons">
+              <button
+                className={`ai-option-btn ${onlineColor === 'X' ? 'selected-x' : ''}`}
+                onClick={() => setOnlineColor('X')}
+              >
+                X&nbsp;<span style={{ fontSize: '0.6em', opacity: 0.7 }}>(1st)</span>
+              </button>
+              <button
+                className={`ai-option-btn ${onlineColor === 'O' ? 'selected-o' : ''}`}
+                onClick={() => setOnlineColor('O')}
+              >
+                O&nbsp;<span style={{ fontSize: '0.6em', opacity: 0.7 }}>(2nd)</span>
+              </button>
+            </div>
+          </div>
+
+          <TimerPresets selected={onlineTimer} onChange={setOnlineTimer} />
+
           <button onClick={handleCreateGame}>Create Room</button>
           <div style={{ margin: '0.5em 0', color: '#888' }}>or</div>
           <input

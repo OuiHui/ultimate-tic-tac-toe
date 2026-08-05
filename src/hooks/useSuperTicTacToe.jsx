@@ -3,12 +3,12 @@ import { initTimers, startTicking, stopTicking } from '../stores/timerStore'
 import { WIN_PATTERNS } from '../utils/constants.js'
 import { analyzeMove } from '../utils/blunderAnalyzer.js'
 
-const DEFAULT_TIME = 300 // 5 minutes in seconds
+const DEFAULT_TIME = 0 // 0 = disabled
 
-function makeInitialState(xTime, oTime) {
+function makeInitialState(xTime, oTime, startingPlayer = 'X') {
   return {
     boards: Array(9).fill(null).map(() => Array(9).fill('')),
-    currentPlayer: 'X',
+    currentPlayer: startingPlayer,
     activeBoard: null,
     wonBoards: Array(9).fill(''),
     gameWinner: '',
@@ -19,8 +19,8 @@ function makeInitialState(xTime, oTime) {
   }
 }
 
-export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIME, initialOTime = DEFAULT_TIME) {
-  const [gameState, setGameState] = useState(() => makeInitialState(initialXTime, initialOTime))
+export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIME, initialOTime = DEFAULT_TIME, startingPlayer = 'X') {
+  const [gameState, setGameState] = useState(() => makeInitialState(initialXTime, initialOTime, startingPlayer))
   const [moveHistory, setMoveHistory] = useState([])
   const [viewingIndex, setViewingIndex] = useState(null)
 
