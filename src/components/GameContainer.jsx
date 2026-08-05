@@ -119,6 +119,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   const handleMove = useCallback(async (boardIndex, cellIndex) => {
     if (gameMode === 'online') {
+      if (viewingIndex !== null) return
       if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
       if (gameState.wonBoards[boardIndex] || gameState.boards[boardIndex][cellIndex]) return
       if (gameState.activeBoard !== null && gameState.activeBoard !== boardIndex) return
@@ -134,7 +135,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       makeMove(boardIndex, cellIndex)
     }
     setHintMoves([])
-  }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase])
+  }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase, viewingIndex])
 
   const handleReset = useCallback(async () => {
     cancelThink()
@@ -170,8 +171,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
 
   // Asynchronous evaluation effect for displayed state
   useEffect(() => {
-    if (gameMode === 'online') return
-
     // 0ms instant baseline update using fast static evaluator
     setEvalScore(evaluatePosition(displayedState))
 
@@ -205,7 +204,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
         worker.terminate()
       }
     }
-  }, [displayedState, gameMode])
+  }, [displayedState])
 
 
   // Online multiplayer setup
@@ -376,7 +375,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       : Boolean(roomInfo.player_x || roomInfo.player_x_id)
   )
 
-  const showEvalBar = gameMode !== 'online'
+  const showEvalBar = true
   const showUndo = gameMode === 'bot' && canUndo() && !isThinking
 
   return (
@@ -401,8 +400,8 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
               <span className={`status-dot ${isOpponentConnected ? 'connected' : 'waiting'}`} />
               <span className="status-text">
                 {isOpponentConnected 
-                  ? `Connected vs ${myPlayer === 'X' ? (roomInfo?.player_o || 'Player O') : (roomInfo?.player_x || 'Player X')}`
-                  : 'Waiting for opponent to join...'
+                  ? `${roomInfo?.player_x || 'Player X'} (X) vs ${roomInfo?.player_o || 'Player O'} (O)`
+                  : `${myPlayer === 'X' ? (roomInfo?.player_x || 'Player X') : (roomInfo?.player_o || 'Player O')} (${myPlayer || 'X'}) vs Waiting for opponent...`
                 }
               </span>
             </div>
@@ -428,7 +427,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
           {showEvalBar && (
             <EvalBar
               score={evalScore}
-              playerColor={gameMode === 'bot' ? playerColor : 'X'}
+              playerColor={gameMode === 'online' ? (myPlayer === 'O' ? 'O' : 'X') : (gameMode === 'bot' ? playerColor : 'X')}
             />
           )}
           <SuperBoard

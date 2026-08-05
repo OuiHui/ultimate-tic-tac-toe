@@ -162,9 +162,23 @@ async function joinRoom(supabase, rawCode) {
 // Make a move in the game
 async function makeMove(supabase, code, newState, currentPlayerRole, moveHistory = []) {
   const now = new Date().toISOString()
+  const rawHistory = moveHistory.length > 0 ? moveHistory : (newState.moveHistory || [])
+  const cleanHistory = rawHistory.map(entry => {
+    if (!entry) return entry
+    const cleanPrev = entry.prevState ? { ...entry.prevState } : null
+    if (cleanPrev && cleanPrev.moveHistory) delete cleanPrev.moveHistory
+    const cleanAfter = entry.stateAfter ? { ...entry.stateAfter } : null
+    if (cleanAfter && cleanAfter.moveHistory) delete cleanAfter.moveHistory
+    return {
+      ...entry,
+      prevState: cleanPrev,
+      stateAfter: cleanAfter,
+    }
+  })
+
   const payload = {
     ...newState,
-    moveHistory: moveHistory.length > 0 ? moveHistory : (newState.moveHistory || [])
+    moveHistory: cleanHistory
   }
 
   // Sync to local room store

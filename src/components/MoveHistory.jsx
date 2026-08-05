@@ -409,13 +409,15 @@ function MoveHistory({
 
                 {/* Actions */}
                 <div className="inspection-actions">
-                  <button
-                    className="branch-btn"
-                    onClick={() => onBranchFrom(viewingIndex)}
-                    title="Resume match from this board state"
-                  >
-                    🌿 Branch from Here
-                  </button>
+                  {gameMode !== 'online' && (
+                    <button
+                      className="branch-btn"
+                      onClick={() => onBranchFrom(viewingIndex)}
+                      title="Resume match from this board state"
+                    >
+                      🌿 Branch from Here
+                    </button>
+                  )}
                   {!isLive && (
                     <button className="live-btn" onClick={onStepToLive}>
                       ▶ Return to Live

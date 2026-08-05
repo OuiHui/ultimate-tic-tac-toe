@@ -1,77 +1,88 @@
 function GameStatus({ gameState, myPlayer, gameMode, playerColor }) {
+  if (!gameState) {
+    return (
+      <div className="game-status">
+        <div className="current-player">
+          <span className="current-player-label">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  const currentPlayer = gameState.currentPlayer || 'X'
+  const isGameOver = Boolean(gameState.gameOver)
+  const winner = gameState.gameWinner || ''
+
   const getPlayerStatusClass = () => {
-    if (gameState.gameOver) {
-      if (gameState.gameWinner === 'tie') {
+    if (isGameOver) {
+      if (winner === 'tie') {
         return 'current-player winner tie-winner'
-      } else {
-        return `current-player winner ${gameState.gameWinner.toLowerCase()}-winner`
       }
+      return `current-player winner ${(winner || 'X').toLowerCase()}-winner`
     }
-    return `current-player ${gameState.currentPlayer.toLowerCase()}-player`
+    return `current-player ${currentPlayer.toLowerCase()}-player`
   }
 
   const getPlayerDisplayText = () => {
-    if (gameState.gameOver) {
-      if (gameState.gameWinner === 'tie') {
+    if (isGameOver) {
+      if (winner === 'tie') {
         return 'Game Tied!'
-      } else if (gameMode === 'bot') {
-        return gameState.gameWinner === playerColor ? 'You Win!' : 'AI Wins!'
-      } else if (gameMode === 'online' && myPlayer && myPlayer !== 'spectator') {
-        return gameState.gameWinner === myPlayer ? 'You Win!' : 'Opponent Wins!'
-      } else {
-        return `Player ${gameState.gameWinner} Wins!`
       }
+      if (gameMode === 'bot') {
+        return winner === playerColor ? 'You Win!' : 'AI Wins!'
+      }
+      if (gameMode === 'online' && myPlayer && myPlayer !== 'spectator') {
+        return winner === myPlayer ? 'You Win!' : 'Opponent Wins!'
+      }
+      return `Player ${winner || 'X'} Wins!`
     }
-    return 'Current Player:'
+
+    if (gameMode === 'online') {
+      if (myPlayer === 'spectator') {
+        return `Current Turn: Player ${currentPlayer}`
+      }
+      if (myPlayer) {
+        return currentPlayer === myPlayer ? 'Your Turn' : "Opponent's Turn"
+      }
+      return `Current Turn: Player ${currentPlayer}`
+    }
+
+    if (gameMode === 'bot') {
+      return currentPlayer === playerColor ? 'Your Turn' : "AI's Turn"
+    }
+
+    return `Current Turn: Player ${currentPlayer}`
   }
 
-  const getPlayerSymbol = () => {
-    if (gameState.gameOver) {
-      return '' // Don't show symbol when game is over
-    }
-    return gameState.currentPlayer
-  }
-
-  const getPlayerColor = () => {
-    if (gameState.gameOver) {
-      if (gameState.gameWinner === 'tie') return '#888'
-      return gameState.gameWinner === 'X' ? '#ff3250' : '#00c8ff'
-    }
-    return gameState.currentPlayer === 'X' ? '#ff3250' : '#00c8ff'
-  }
+  const showSymbol = !isGameOver && gameMode === 'local'
 
   return (
     <div className="game-status">
       <div className={getPlayerStatusClass()}>
         <span className="current-player-label">{getPlayerDisplayText()}</span>
-        {getPlayerSymbol() && (
+        {showSymbol && (
           <span 
-            className={`player-symbol ${gameState.gameOver ? gameState.gameWinner?.toLowerCase() : gameState.currentPlayer.toLowerCase()}`}
+            className={`player-symbol ${currentPlayer.toLowerCase()}`}
             style={{ 
-              color: getPlayerColor(),
+              color: currentPlayer === 'X' ? '#ff3250' : '#00c8ff',
               marginLeft: '8px',
               fontWeight: 'bold'
             }}
           >
-            {getPlayerSymbol()}
-          </span>
-        )}
-        {myPlayer && !gameState.gameOver && (
-          <span style={{ marginLeft: '16px', fontSize: '0.9em', color: '#aaa' }}>
-            (You are {myPlayer})
+            {currentPlayer}
           </span>
         )}
       </div>
       
       <div className={`game-instruction ${
-        gameState.gameOver 
-          ? gameState.gameWinner === 'tie' ? '' : `${gameState.gameWinner.toLowerCase()}-theme`
-          : `${gameState.currentPlayer.toLowerCase()}-theme`
+        isGameOver 
+          ? winner === 'tie' ? '' : `${(winner || 'X').toLowerCase()}-theme`
+          : `${currentPlayer.toLowerCase()}-theme`
       }`}>
-        {gameState.gameOver 
-          ? gameState.gameWinner === 'tie' 
+        {isGameOver 
+          ? winner === 'tie' 
             ? 'Neither player could achieve victory!' 
-            : `Congratulations! Victory achieved!`
+            : 'Congratulations! Victory achieved!'
           : gameState.activeBoard === null 
             ? 'Play anywhere' 
             : `Target grid ${gameState.activeBoard + 1}`}

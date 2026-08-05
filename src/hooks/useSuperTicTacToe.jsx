@@ -29,11 +29,12 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
 
   // Track initial times so resetGame uses the same values
   const initTimesRef = useRef({ x: initialXTime, o: initialOTime })
-  initTimesRef.current = { x: initialXTime, o: initialOTime }
+  const hasInitializedRemoteTimerRef = useRef(false)
 
   useEffect(() => {
+    initTimesRef.current = { x: initialXTime, o: initialOTime }
     initTimers(initialXTime, initialOTime)
-  }, [])
+  }, [initialXTime, initialOTime])
 
   useEffect(() => {
     if (!gameState.gameStarted || gameState.gameOver) {
@@ -62,11 +63,25 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
 
   const syncRemoteState = (remoteState, remoteHistory = null) => {
     if (!remoteState) return
+
+    const incomingHistory = (remoteHistory && Array.isArray(remoteHistory))
+      ? remoteHistory
+      : (remoteState.moveHistory && Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory : null)
+
+    // Guard against applying stale remote updates if local state is already ahead
+    if (incomingHistory && incomingHistory.length < moveHistory.length) {
+      console.warn('Skipped stale remote state update:', incomingHistory.length, '<', moveHistory.length)
+      return
+    }
+
     setGameState(remoteState)
-    if (remoteHistory && Array.isArray(remoteHistory)) {
-      setMoveHistory(remoteHistory)
-    } else if (remoteState.moveHistory && Array.isArray(remoteState.moveHistory)) {
-      setMoveHistory(remoteState.moveHistory)
+    if (!hasInitializedRemoteTimerRef.current && typeof remoteState.playerXTime === 'number' && typeof remoteState.playerOTime === 'number') {
+      hasInitializedRemoteTimerRef.current = true
+      initTimesRef.current = { x: remoteState.playerXTime, o: remoteState.playerOTime }
+      initTimers(remoteState.playerXTime, remoteState.playerOTime)
+    }
+    if (incomingHistory) {
+      setMoveHistory(incomingHistory)
     }
     setViewingIndex(null)
   }
@@ -82,6 +97,12 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
   }
 
   const isBoardFull = (board) => board.every(cell => cell !== '')
+
+  const sanitizeStateForHistory = (stateObj) => {
+    if (!stateObj) return null
+    const { moveHistory, ...cleanState } = stateObj
+    return cleanState
+  }
 
   const makeMove = (boardIndex, cellIndex) => {
     // If currently browsing a past move, branch from that state
@@ -155,8 +176,8 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
       player: baseState.currentPlayer,
       boardIndex,
       cellIndex,
-      prevState: baseState,
-      stateAfter: newState,
+      prevState: sanitizeStateForHistory(baseState),
+      stateAfter: sanitizeStateForHistory(newState),
       analysis,
     }
 
@@ -187,8 +208,9 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
     historyRef.current = []
     setMoveHistory([])
     setViewingIndex(null)
+    hasInitializedRemoteTimerRef.current = false
     const { x, o } = initTimesRef.current
-    const newState = makeInitialState(x, o)
+    const newState = makeInitialState(x, o, startingPlayer)
     setGameState(newState)
     initTimers(x, o)
     return newState
