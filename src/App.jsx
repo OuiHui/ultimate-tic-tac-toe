@@ -1,6 +1,24 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
-const StartMenu     = lazy(() => import('./components/StartMenu'))
-const GameContainer = lazy(() => import('./components/GameContainer'))
+const lazyImport = (importFn) => {
+  return lazy(async () => {
+    try {
+      return await importFn()
+    } catch (error) {
+      if (error.message.includes('Failed to fetch dynamically imported module') || error.message.includes('Importing a module script failed')) {
+        const hasReloaded = sessionStorage.getItem('lazy_reload')
+        if (!hasReloaded) {
+          sessionStorage.setItem('lazy_reload', 'true')
+          window.location.reload()
+          return new Promise(() => {}) // Keep suspended while reloading
+        }
+      }
+      return Promise.reject(error)
+    }
+  })
+}
+
+const StartMenu     = lazyImport(() => import('./components/StartMenu'))
+const GameContainer = lazyImport(() => import('./components/GameContainer'))
 import { SupabaseProvider } from './contexts/SupabaseContext'
 import './styles/index.css'
 

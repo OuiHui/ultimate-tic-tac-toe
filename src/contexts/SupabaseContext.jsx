@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const SupabaseContext = createContext()
@@ -27,7 +27,7 @@ export function SupabaseProvider({ children }) {
 
   useEffect(() => {
     if (!supabase) {
-      console.info('Supabase credentials not configured. Online multiplayer running in Local Cross-Tab Broadcast mode.')
+      console.warn('Supabase environment variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) are not configured. Online multiplayer will be disabled.')
     }
   }, [supabase])
 
@@ -62,6 +62,10 @@ function generateGameCode() {
 
 // Create a new game room
 async function createRoom(supabase, hostDisplayName = '', hostPlayerId = null, timerSeconds = 0, hostRole = 'X') {
+  if (!supabase) {
+    throw new Error('Supabase client is not configured. Please check environment variables.')
+  }
+
   const code = generateGameCode().toUpperCase()
   const now = new Date().toISOString()
   const defaultDefaultName = hostRole === 'X' ? 'Player X' : 'Player O'
@@ -83,44 +87,22 @@ async function createRoom(supabase, hostDisplayName = '', hostPlayerId = null, t
     moveHistory: []
   }
 
-  const roomData = {
-    code,
-    state: initialState,
-    player_x: hostRole === 'X' ? name : null,
-    player_o: hostRole === 'O' ? name : null,
-    player_x_id: hostRole === 'X' ? playerId : null,
-    player_o_id: hostRole === 'O' ? playerId : null,
-    created_at: now,
-    updated_at: now
-  }
+  const { error } = await supabase
+    .from('games')
+    .insert({
+      code,
+      state: initialState,
+      player_x: hostRole === 'X' ? name : null,
+      player_o: hostRole === 'O' ? name : null,
+      player_x_id: hostRole === 'X' ? playerId : null,
+      player_o_id: hostRole === 'O' ? playerId : null,
+      created_at: now,
+      updated_at: now
+    })
 
-  // Save locally for cross-tab fallback
-  try {
-    localStorage.setItem(`ttt-room-${code}`, JSON.stringify(roomData))
-  } catch (err) {
-    console.debug('Failed to write to localStorage:', err)
-  }
-
-  if (supabase) {
-    try {
-      const { error } = await supabase
-        .from('games')
-        .insert({
-          code,
-          state: initialState,
-          player_x: hostRole === 'X' ? name : null,
-          player_o: hostRole === 'O' ? name : null,
-          player_x_id: hostRole === 'X' ? playerId : null,
-          player_o_id: hostRole === 'O' ? playerId : null,
-          created_at: now,
-          updated_at: now
-        })
-      if (error) {
-        console.warn('Supabase insert warning:', error.message)
-      }
-    } catch (err) {
-      console.warn('Supabase createRoom failed, relying on local broadcast:', err)
-    }
+  if (error) {
+    console.error('Supabase createRoom error:', error.message)
+    throw new Error(error.message)
   }
 
   return code
@@ -129,39 +111,27 @@ async function createRoom(supabase, hostDisplayName = '', hostPlayerId = null, t
 // Join an existing game room
 async function joinRoom(supabase, rawCode) {
   if (!rawCode) throw new Error('Game room not found')
+  if (!supabase) throw new Error('Supabase client is not configured. Please check environment variables.')
+  
   const code = rawCode.trim().toUpperCase()
 
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('games')
-        .select('*')
-        .eq('code', code)
-        .single()
+  const { data, error } = await supabase
+    .from('games')
+    .select('*')
+    .eq('code', code)
+    .single()
 
-      if (!error && data) {
-        return data
-      }
-    } catch (err) {
-      console.debug('Supabase join query skipped:', err)
-    }
+  if (error || !data) {
+    throw new Error('Game room not found')
   }
 
-  // Fallback to local storage room
-  const localRoom = localStorage.getItem(`ttt-room-${code}`)
-  if (localRoom) {
-    try {
-      return JSON.parse(localRoom)
-    } catch (err) {
-      console.debug('Failed to parse local room:', err)
-    }
-  }
-
-  throw new Error('Game room not found')
+  return data
 }
 
 // Make a move in the game
 async function makeMove(supabase, code, newState, currentPlayerRole, moveHistory = []) {
+  if (!supabase) throw new Error('Supabase client is not configured. Please check environment variables.')
+
   const now = new Date().toISOString()
   const rawHistory = moveHistory.length > 0 ? moveHistory : (newState.moveHistory || [])
   const cleanHistory = rawHistory.map(entry => {
@@ -182,49 +152,20 @@ async function makeMove(supabase, code, newState, currentPlayerRole, moveHistory
     moveHistory: cleanHistory
   }
 
-  // Sync to local room store
-  try {
-    const raw = localStorage.getItem(`ttt-room-${code}`)
-    if (raw) {
-      const room = JSON.parse(raw)
-      room.state = payload
-      room.updated_at = now
-      localStorage.setItem(`ttt-room-${code}`, JSON.stringify(room))
-    }
-  } catch (err) {
-    console.debug('Local storage move sync error:', err)
+  const { data, error } = await supabase
+    .from('games')
+    .update({
+      state: payload,
+      updated_at: now
+    })
+    .eq('code', code)
+    .select()
+
+  if (error) {
+    console.error('Supabase update error:', error.message)
+    throw new Error(error.message)
   }
-
-  // Broadcast locally across tabs
-  try {
-    const bc = new BroadcastChannel(`ttt-game-${code}`)
-    bc.postMessage({ type: 'GAME_UPDATE', code, state: payload })
-    bc.close()
-  } catch (err) {
-    console.debug('Broadcast channel error:', err)
-  }
-
-  if (!supabase) return payload
-
-  // Direct table update
-  try {
-    const { data, error } = await supabase
-      .from('games')
-      .update({
-        state: payload,
-        updated_at: now
-      })
-      .eq('code', code)
-      .select()
-
-    if (error) {
-      console.warn('Supabase update error (falling back to local broadcast):', error.message)
-    }
-    return data
-  } catch (err) {
-    console.warn('Supabase update failed:', err)
-    return payload
-  }
+  return data
 }
 
 // Claim timeout for opponent
@@ -245,85 +186,61 @@ async function claimTimeout(supabase, code, timedOutPlayer) {
 
 // Notify opponent when a player leaves the room
 async function notifyPlayerLeft(supabase, code, playerRole) {
-  if (!code || !playerRole) return
+  if (!code || !playerRole || !supabase) return
 
-  // Broadcast locally across tabs
   try {
-    const bc = new BroadcastChannel(`ttt-game-${code}`)
-    bc.postMessage({ type: 'PLAYER_LEFT', player: playerRole })
-    bc.close()
-  } catch (_) {}
-
-  // Broadcast via Supabase
-  if (supabase) {
-    try {
-      const channel = supabase.channel(`game-${code}`)
-      await channel.send({
-        type: 'broadcast',
-        event: 'PLAYER_LEFT',
-        payload: { player: playerRole }
-      })
-    } catch (_) {}
+    const channel = supabase.channel(`game-${code}`)
+    await channel.send({
+      type: 'broadcast',
+      event: 'PLAYER_LEFT',
+      payload: { player: playerRole }
+    })
+  } catch (err) {
+    console.error('Error notifying player left:', err)
   }
 }
 
 // Subscribe to game updates
 function subscribeToGame(supabase, code, callback) {
-  let supabaseChannel = null
-  let bc = null
+  if (!supabase) return null
 
-  // BroadcastChannel listener for multi-tab
-  try {
-    bc = new BroadcastChannel(`ttt-game-${code}`)
-    bc.onmessage = (e) => {
-      if (e.data) {
-        callback(e.data)
+  const channelName = `game-${code}`
+  const existingChannel = supabase.getChannels?.().find(ch => ch.topic === `realtime:${channelName}`)
+  if (existingChannel) {
+    supabase.removeChannel(existingChannel)
+  }
+
+  const supabaseChannel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'games',
+        filter: `code=eq.${code}`
+      },
+      (payload) => {
+        callback(payload.new)
       }
-    }
-  } catch (err) {
-    console.debug('Broadcast channel listen error:', err)
-  }
+    )
+    .on('broadcast', { event: 'PLAYER_LEFT' }, (payload) => {
+      if (payload?.payload) {
+        callback({ type: 'PLAYER_LEFT', ...payload.payload })
+      }
+    })
+    .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+      callback({ type: 'PRESENCE_LEAVE', leftPresences })
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED' && supabaseChannel) {
+        try {
+          supabaseChannel.track({ online_at: new Date().toISOString(), player_id: getPlayerId() })
+        } catch (_) {}
+      }
+    })
 
-  // Supabase subscription
-  if (supabase) {
-    const channelName = `game-${code}`
-    const existingChannel = supabase.getChannels?.().find(ch => ch.topic === `realtime:${channelName}`)
-    if (existingChannel) {
-      supabase.removeChannel(existingChannel)
-    }
-
-    supabaseChannel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'games',
-          filter: `code=eq.${code}`
-        },
-        (payload) => {
-          callback(payload.new)
-        }
-      )
-      .on('broadcast', { event: 'PLAYER_LEFT' }, (payload) => {
-        if (payload?.payload) {
-          callback({ type: 'PLAYER_LEFT', ...payload.payload })
-        }
-      })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        callback({ type: 'PRESENCE_LEAVE', leftPresences })
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED' && supabaseChannel) {
-          try {
-            supabaseChannel.track({ online_at: new Date().toISOString(), player_id: getPlayerId() })
-          } catch (_) {}
-        }
-      })
-  }
-
-  return { supabaseChannel, bc }
+  return { supabaseChannel }
 }
 
 // Unsubscribe from game updates
@@ -336,13 +253,6 @@ async function unsubscribeFromGame(subscription) {
       console.debug('Unsubscribe error:', err)
     }
   }
-  if (subscription.bc) {
-    try {
-      subscription.bc.close()
-    } catch (err) {
-      console.debug('BC close error:', err)
-    }
-  }
 }
 
 export function useSupabase() {
@@ -352,4 +262,3 @@ export function useSupabase() {
   }
   return context
 }
-
