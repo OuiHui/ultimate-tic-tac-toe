@@ -19,8 +19,12 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     subscribeToGame,
     unsubscribeFromGame,
     notifyPlayerLeft,
+    notifyPlayerRejoined,
     getPlayerId,
   } = useSupabase()
+
+  const [opponentDisconnected, setOpponentDisconnected] = useState(false)
+  const isGamePaused = gameMode === 'online' && opponentDisconnected
 
   const {
     gameState,
@@ -39,7 +43,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
     stepToStart,
     stepToLive,
     branchFrom,
-  } = useSuperTicTacToe(gameMode !== 'online', playerXTime, playerOTime, playerColor)
+  } = useSuperTicTacToe(gameMode !== 'online', playerXTime, playerOTime, playerColor, isGamePaused)
 
   const botPlayer = playerColor === 'X' ? 'O' : 'X'
 
@@ -54,7 +58,6 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   // ── 2. Local State Hooks ───────────────────────────────────────────────────
   const [myPlayer, setMyPlayer] = useState(null)
   const [roomInfo, setRoomInfo] = useState(null)
-  const [opponentLeft, setOpponentLeft] = useState(false)
   const [copied, setCopied] = useState(false)
   const [supabaseChannel, setSupabaseChannel] = useState(null)
   const [hintMode, setHintMode] = useState(() => localStorage.getItem('ttt-hint-mode') === 'true')
@@ -120,6 +123,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
   }, [])
 
   const handleMove = useCallback(async (boardIndex, cellIndex) => {
+    if (isGamePaused) return
     if (gameMode === 'online') {
       if (viewingIndex !== null) return
       if (gameState.gameOver || myPlayer !== gameState.currentPlayer) return
@@ -137,7 +141,7 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       makeMove(boardIndex, cellIndex)
     }
     setHintMoves([])
-  }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase, viewingIndex])
+  }, [gameMode, gameState, myPlayer, makeMove, supabase, gameCode, makeMoveSupabase, viewingIndex, isGamePaused])
 
   const handleReset = useCallback(async () => {
     cancelThink()
@@ -267,6 +271,10 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       setMyPlayer(assignedPlayer)
       sessionStorage.setItem('super-ttt-player-' + gameCode, assignedPlayer)
 
+      if (assignedPlayer === 'X' || assignedPlayer === 'O') {
+        notifyPlayerRejoined(supabase, gameCode, assignedPlayer)
+      }
+
       if (Object.keys(updateData).length > 0) {
         const updatedRoom = { ...room, ...updateData }
         setRoomInfo(updatedRoom)
@@ -291,13 +299,15 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
       const subscription = subscribeToGame(supabase, gameCode, (updated) => {
         if (updated) {
           if (updated.type === 'PLAYER_LEFT') {
-            if (updated.player && updated.player !== myPlayer && updated.player !== 'spectator') {
-              setOpponentLeft(true)
+            if (updated.player && updated.player !== assignedPlayer && updated.player !== 'spectator') {
+              setOpponentDisconnected(true)
             }
             return
           }
-          if (updated.type === 'PRESENCE_LEAVE') {
-            setOpponentLeft(true)
+          if (updated.type === 'PLAYER_REJOINED') {
+            if (updated.player && updated.player !== assignedPlayer && updated.player !== 'spectator') {
+              setOpponentDisconnected(false)
+            }
             return
           }
           if (updated.state) {
@@ -426,10 +436,10 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
               </button>
             </div>
             <div className="room-status-section">
-              <span className={`status-dot ${opponentLeft ? 'left' : (isOpponentConnected ? 'connected' : 'waiting')}`} />
+              <span className={`status-dot ${opponentDisconnected ? 'left' : (isOpponentConnected ? 'connected' : 'waiting')}`} />
               <span className="status-text">
-                {opponentLeft
-                  ? `Opponent (${myPlayer === 'X' ? 'O' : 'X'}) left the match`
+                {opponentDisconnected
+                  ? `Opponent (${myPlayer === 'X' ? 'O' : 'X'}) disconnected — Paused`
                   : isOpponentConnected 
                     ? `${roomInfo?.player_x || 'Player X'} (X) vs ${roomInfo?.player_o || 'Player O'} (O)`
                     : `${myPlayer === 'X' ? (roomInfo?.player_x || 'Player X') : (roomInfo?.player_o || 'Player O')} (${myPlayer || 'X'}) vs Waiting for opponent...`
@@ -439,9 +449,9 @@ function GameContainer({ gameMode, gameCode, onBackToMenu, botDifficulty, player
           </div>
         )}
 
-        {gameMode === 'online' && opponentLeft && !displayedState.gameOver && (
+        {gameMode === 'online' && opponentDisconnected && !displayedState.gameOver && (
           <div className="opponent-left-banner">
-            ⚠️ Opponent left the match midgame. You win by forfeit!
+            ⚠️ Opponent disconnected midgame. Game paused — waiting for opponent to rejoin...
           </div>
         )}
 

@@ -19,7 +19,7 @@ function makeInitialState(xTime, oTime, startingPlayer = 'X') {
   }
 }
 
-export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIME, initialOTime = DEFAULT_TIME, startingPlayer = 'X') {
+export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIME, initialOTime = DEFAULT_TIME, startingPlayer = 'X', isPaused = false) {
   const [gameState, setGameState] = useState(() => makeInitialState(initialXTime, initialOTime, startingPlayer))
   const [moveHistory, setMoveHistory] = useState([])
   const [viewingIndex, setViewingIndex] = useState(null)
@@ -37,7 +37,7 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
   }, [initialXTime, initialOTime])
 
   useEffect(() => {
-    if (!gameState.gameStarted || gameState.gameOver) {
+    if (!gameState.gameStarted || gameState.gameOver || isPaused) {
       stopTicking()
       return
     }
@@ -59,7 +59,7 @@ export function useSuperTicTacToe(isLocalGame = true, initialXTime = DEFAULT_TIM
     return () => {
       stopTicking()
     }
-  }, [gameState.currentPlayer, gameState.gameOver, gameState.gameStarted])
+  }, [gameState.currentPlayer, gameState.gameOver, gameState.gameStarted, isPaused])
 
   const syncRemoteState = (remoteState, remoteHistory = null) => {
     if (!remoteState) return

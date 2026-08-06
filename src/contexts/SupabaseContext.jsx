@@ -40,6 +40,7 @@ export function SupabaseProvider({ children }) {
     subscribeToGame,
     unsubscribeFromGame,
     notifyPlayerLeft,
+    notifyPlayerRejoined,
     getPlayerId,
   }
 
@@ -200,6 +201,22 @@ async function notifyPlayerLeft(supabase, code, playerRole) {
   }
 }
 
+// Notify opponent when a player rejoins the room
+async function notifyPlayerRejoined(supabase, code, playerRole) {
+  if (!code || !playerRole || !supabase) return
+
+  try {
+    const channel = supabase.channel(`game-${code}`)
+    await channel.send({
+      type: 'broadcast',
+      event: 'PLAYER_REJOINED',
+      payload: { player: playerRole }
+    })
+  } catch (err) {
+    console.error('Error notifying player rejoined:', err)
+  }
+}
+
 // Subscribe to game updates
 function subscribeToGame(supabase, code, callback) {
   if (!supabase) return null
@@ -229,8 +246,10 @@ function subscribeToGame(supabase, code, callback) {
         callback({ type: 'PLAYER_LEFT', ...payload.payload })
       }
     })
-    .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      callback({ type: 'PRESENCE_LEAVE', leftPresences })
+    .on('broadcast', { event: 'PLAYER_REJOINED' }, (payload) => {
+      if (payload?.payload) {
+        callback({ type: 'PLAYER_REJOINED', ...payload.payload })
+      }
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED' && supabaseChannel) {
